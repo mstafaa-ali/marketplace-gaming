@@ -1,26 +1,277 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
+/* ---------------------------------------------------------------------------
+ * Design tokens — Royal Violet
+ * Tailwind v4: tokens defined here become utilities (bg-primary, text-fg, ...)
+ * ---------------------------------------------------------------------------*/
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
+  /* Brand — violet scale */
+  --color-violet-50: #f4f1ff;
+  --color-violet-100: #e5dcff;
+  --color-violet-200: #cdb8ff;
+  --color-violet-300: #b093ff;
+  --color-violet-400: #9269ff;
+  --color-violet-500: #7c3aed;
+  --color-violet-600: #6b27d9;
+  --color-violet-700: #561fb0;
+  --color-violet-800: #3f1689;
+  --color-violet-900: #2a0e5c;
+  --color-violet-950: #170733;
+
+  /* Semantic primary aliases (utility: bg-primary, text-primary, ...) */
+  --color-primary: var(--color-violet-500);
+  --color-primary-hover: var(--color-violet-600);
+  --color-primary-active: var(--color-violet-700);
+
+  /* Surfaces & foregrounds — themed via :root / .dark below */
+  --color-bg: var(--bg);
+  --color-bg-elevated: var(--bg-elevated);
+  --color-bg-overlay: var(--bg-overlay);
+  --color-border: var(--border);
+  --color-border-strong: var(--border-strong);
+  --color-fg: var(--fg);
+  --color-fg-muted: var(--fg-muted);
+  --color-fg-subtle: var(--fg-subtle);
+
+  /* Accents */
+  --color-accent-pink: #ff4fd8;
+  --color-accent-cyan: #22d3ee;
+  --color-accent-amber: #f5b544;
+
+  /* Semantic */
+  --color-success: #10b981;
+  --color-success-soft: var(--success-soft);
+  --color-danger: #ef4444;
+  --color-danger-soft: var(--danger-soft);
+  --color-warning: #f59e0b;
+  --color-info: #3b82f6;
+
+  /* Fonts */
   --font-sans: var(--font-geist-sans);
+  --font-display: var(--font-display, var(--font-geist-sans));
   --font-mono: var(--font-geist-mono);
+
+  /* Radius */
+  --radius-xs: 0.25rem;
+  --radius-sm: 0.5rem;
+  --radius-md: 0.75rem;
+  --radius-lg: 1rem;
+  --radius-xl: 1.5rem;
+  --radius-2xl: 2rem;
+
+  /* Shadows */
+  --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.4);
+  --shadow-md: 0 8px 24px -8px rgb(0 0 0 / 0.45);
+  --shadow-lg: 0 24px 48px -12px rgb(0 0 0 / 0.55);
+  --shadow-glow:
+    0 0 0 1px color-mix(in oklab, var(--color-violet-500) 40%, transparent),
+    0 8px 32px -8px
+      color-mix(in oklab, var(--color-violet-500) 60%, transparent);
+
+  /* Motion */
+  --ease-snappy: cubic-bezier(0.32, 0.72, 0, 1);
+  --duration-fast: 120ms;
+  --duration-base: 200ms;
+  --duration-slow: 360ms;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+/* ---------------------------------------------------------------------------
+ * Theme: Dark (default)
+ * ---------------------------------------------------------------------------*/
+:root {
+  color-scheme: dark;
+
+  --bg: #0b0717;
+  --bg-elevated: #120b26;
+  --bg-overlay: #1a1235;
+  --border: #251a45;
+  --border-strong: #3b2a6b;
+
+  --fg: #f5f1ff;
+  --fg-muted: #b7aad9;
+  --fg-subtle: #7e72a6;
+
+  --success-soft: #0f3d2e;
+  --danger-soft: #3f1717;
+
+  /* shadcn-style aliases */
+  --background: var(--bg);
+  --foreground: var(--fg);
+  --card: var(--bg-elevated);
+  --card-foreground: var(--fg);
+  --popover: var(--bg-overlay);
+  --popover-foreground: var(--fg);
+  --primary-foreground: #ffffff;
+  --secondary: var(--bg-overlay);
+  --secondary-foreground: var(--fg);
+  --muted: var(--bg-overlay);
+  --muted-foreground: var(--fg-muted);
+  --accent: var(--color-violet-800);
+  --accent-foreground: var(--fg);
+  --destructive: var(--color-danger);
+  --destructive-foreground: #ffffff;
+  --input: var(--border);
+  --ring: var(--color-violet-400);
+  --radius: var(--radius-md);
+}
+
+/* ---------------------------------------------------------------------------
+ * Theme: Light
+ * ---------------------------------------------------------------------------*/
+.light {
+  color-scheme: light;
+
+  --bg: #f8f5ff;
+  --bg-elevated: #ffffff;
+  --bg-overlay: #ffffff;
+  --border: #e2d9fa;
+  --border-strong: #c9b8f2;
+
+  --fg: #1b1140;
+  --fg-muted: #4d3d7a;
+  --fg-subtle: #7e72a6;
+
+  --success-soft: #d1fae5;
+  --danger-soft: #fee2e2;
+
+  --background: var(--bg);
+  --foreground: var(--fg);
+  --card: var(--bg-elevated);
+  --card-foreground: var(--fg);
+  --popover: var(--bg-overlay);
+  --popover-foreground: var(--fg);
+  --primary-foreground: #ffffff;
+  --secondary: var(--bg-overlay);
+  --secondary-foreground: var(--fg);
+  --muted: var(--bg-overlay);
+  --muted-foreground: var(--fg-muted);
+  --accent: var(--color-violet-100);
+  --accent-foreground: var(--color-violet-900);
+  --destructive: var(--color-danger);
+  --destructive-foreground: #ffffff;
+  --input: var(--border);
+  --ring: var(--color-violet-500);
+}
+
+/* Optional: explicit `.dark` to mirror current `:root` in case of nested overrides */
+.dark {
+  color-scheme: dark;
+
+  --bg: #0b0717;
+  --bg-elevated: #120b26;
+  --bg-overlay: #1a1235;
+  --border: #251a45;
+  --border-strong: #3b2a6b;
+
+  --fg: #f5f1ff;
+  --fg-muted: #b7aad9;
+  --fg-subtle: #7e72a6;
+
+  --success-soft: #0f3d2e;
+  --danger-soft: #3f1717;
+
+  --background: var(--bg);
+  --foreground: var(--fg);
+  --card: var(--bg-elevated);
+  --card-foreground: var(--fg);
+  --popover: var(--bg-overlay);
+  --popover-foreground: var(--fg);
+  --primary-foreground: #ffffff;
+  --secondary: var(--bg-overlay);
+  --secondary-foreground: var(--fg);
+  --muted: var(--bg-overlay);
+  --muted-foreground: var(--fg-muted);
+  --accent: var(--color-violet-800);
+  --accent-foreground: var(--fg);
+  --destructive: var(--color-danger);
+  --destructive-foreground: #ffffff;
+  --input: var(--border);
+  --ring: var(--color-violet-400);
+}
+
+/* ---------------------------------------------------------------------------
+ * Base
+ * ---------------------------------------------------------------------------*/
+body {
+  background: var(--bg);
+  color: var(--fg);
+  font-family: var(--font-sans), Arial, Helvetica, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+@layer base {
+  *:focus-visible {
+    outline: 2px solid var(--color-violet-400);
+    outline-offset: 2px;
+    border-radius: var(--radius-sm);
+  }
+
+  ::selection {
+    background: color-mix(in oklab, var(--color-violet-500) 35%, transparent);
+    color: var(--fg);
   }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+/* ---------------------------------------------------------------------------
+ * Utilities & helpers
+ * ---------------------------------------------------------------------------*/
+@utility container-page {
+  width: 100%;
+  margin-inline: auto;
+  max-width: 80rem; /* 1280px */
+  padding-inline: 1rem;
+}
+
+@media (min-width: 640px) {
+  .container-page {
+    padding-inline: 1.5rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  .container-page {
+    padding-inline: 2rem;
+  }
+}
+
+.bg-aurora {
+  background:
+    radial-gradient(
+      80% 60% at 80% 0%,
+      color-mix(in oklab, var(--color-violet-500) 35%, transparent) 0%,
+      transparent 60%
+    ),
+    radial-gradient(
+      60% 50% at 0% 0%,
+      color-mix(in oklab, var(--color-accent-pink) 22%, transparent) 0%,
+      transparent 55%
+    ),
+    var(--bg);
+}
+
+.light .bg-aurora {
+  background:
+    radial-gradient(
+      80% 60% at 80% 0%,
+      color-mix(in oklab, var(--color-violet-500) 18%, transparent) 0%,
+      transparent 60%
+    ),
+    radial-gradient(
+      60% 50% at 0% 0%,
+      color-mix(in oklab, var(--color-accent-pink) 14%, transparent) 0%,
+      transparent 55%
+    ),
+    var(--bg);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }
