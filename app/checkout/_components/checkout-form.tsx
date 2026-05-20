@@ -40,16 +40,18 @@ export function CheckoutForm() {
   const isProcessing = useCheckoutStore((s) => s.isProcessing);
   const setProcessing = useCheckoutStore((s) => s.setProcessing);
   const setOrderResult = useCheckoutStore((s) => s.setOrderResult);
+  const orderResult = useCheckoutStore((s) => s.orderResult);
 
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [paymentError, setPaymentError] = useState("");
 
-  // Redirect if cart is empty (after hydration)
+  // Redirect if cart is empty (after hydration) — but NOT if we just
+  // completed an order (orderResult exists, cart was intentionally cleared).
   useEffect(() => {
-    if (hydrated && items.length === 0) {
+    if (hydrated && items.length === 0 && !orderResult) {
       router.replace("/products");
     }
-  }, [hydrated, items.length, router]);
+  }, [hydrated, items.length, orderResult, router]);
 
   // Determine if game ID is required (any item is topup/account category)
   // For simplicity in mock, we check if any item ID contains "topup" or "account"
@@ -150,8 +152,8 @@ export function CheckoutForm() {
     return null;
   }
 
-  // If cart is empty, show nothing (redirect will happen via useEffect)
-  if (items.length === 0) {
+  // If cart is empty and no order was just placed, show nothing (redirect will happen via useEffect)
+  if (items.length === 0 && !orderResult) {
     return null;
   }
 

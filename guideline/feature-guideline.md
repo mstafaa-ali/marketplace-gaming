@@ -136,40 +136,42 @@ Dipecah jadi 3 fase agar tiap fase _shippable_.
 - [x] Wrap `RelatedProducts` dalam `<Suspense>` di page dengan separator border-top.
 - [x] Verifikasi: `npm run lint` ✅, `npm run build` ✅ (route `/` static ●, `/products` dynamic ƒ, `/products/[slug]` dynamic ƒ).
 
-### Tahap 6 — Checkout UI (`/checkout` + `/checkout/confirmation`) ⬜
+### Tahap 6 — Checkout UI (`/checkout` + `/checkout/confirmation`) ✅
 
 Simulasi checkout front-end (tanpa backend payment gateway). Dipecah jadi 3 fase.
 
-#### Fase 6A — Tipe, Store & Data Layer ⬜
+#### Fase 6A — Tipe, Store & Data Layer ✅
 
-- [ ] `lib/types/checkout.ts` — `CustomerInfo`, `PaymentMethod`, `VoucherCode`, `OrderSummary`, `CheckoutState`.
-- [ ] `stores/checkout-store.ts` — Zustand store untuk draft checkout (customer info, selected payment, voucher). Tidak di-persist (ephemeral per session).
-- [ ] `lib/constants/checkout.ts` — `PAYMENT_METHODS` (Transfer Bank, E-Wallet, QRIS), `VOUCHER_CODES` (mock valid codes + diskon).
-- [ ] `lib/utils/checkout.ts` — `validateVoucher()`, `calculateOrderSummary()` (subtotal, diskon voucher, total).
-- [ ] `lib/data/mock-checkout.ts` — mock order result untuk confirmation page.
+- [x] `lib/types/checkout.ts` — `PaymentMethodType`, `PaymentMethod`, `CustomerInfo`, `VoucherResult`, `OrderItem`, `OrderSummary`, `OrderResult`.
+- [x] `stores/checkout-store.ts` — Zustand store untuk draft checkout (customer info, selected payment, voucher, order result, processing flag). Ephemeral (tanpa `persist`); helper `reset()` mengembalikan ke `INITIAL_STATE`.
+- [x] `lib/constants/checkout.ts` — `PAYMENT_METHODS` (Transfer Bank BCA/Mandiri/BRI, E-Wallet GoPay/OVO/Dana, QRIS) + `MOCK_VOUCHERS` (`HEMAT10`, `GAMING20`, `NEWUSER15`).
+- [x] `lib/utils/checkout.ts` — `validateVoucher()`, `calculateOrderSummary()`, `generateOrderId()`, plus `validateCustomerInfo()` (dipakai 6B).
+- [x] `lib/data/mock-checkout.ts` — `getPaymentInstructions()` per `PaymentMethodType` + `getEstimatedDelivery()`.
+- [x] Verifikasi: `npm run lint` ✅, `npm run build` ✅.
 
-#### Fase 6B — Checkout Page (`/checkout`) ⬜
+#### Fase 6B — Checkout Page (`/checkout`) ✅
 
-- [ ] `app/checkout/page.tsx` — Server Component shell, redirect ke `/products` jika cart kosong (baca dari client via layout pattern).
-- [ ] `app/checkout/loading.tsx` — skeleton form + order summary.
-- [ ] `app/checkout/error.tsx` — error boundary.
-- [ ] `app/checkout/_components/checkout-form.tsx` (`"use client"`) — multi-section form: data customer, pilihan pembayaran, voucher code.
-- [ ] `app/checkout/_components/customer-info-section.tsx` (`"use client"`) — input Nama, Email, No. WhatsApp, ID Game (opsional per kategori). Validasi inline.
-- [ ] `app/checkout/_components/payment-method-section.tsx` (`"use client"`) — radio group metode pembayaran (Transfer Bank BCA/Mandiri/BRI, E-Wallet GoPay/OVO/Dana, QRIS). Ikon per metode.
-- [ ] `app/checkout/_components/voucher-section.tsx` (`"use client"`) — input kode voucher + tombol "Terapkan", feedback valid/invalid, badge diskon applied.
-- [ ] `app/checkout/_components/order-summary-card.tsx` (`"use client"`) — sticky di desktop, list item dari cart (thumbnail, title, qty, harga), subtotal, diskon voucher, total, tombol "Bayar Sekarang".
-- [ ] `app/checkout/_components/cart-item-row.tsx` — baris item di order summary (reusable).
-- [ ] Metadata: `title: "Checkout"`, `robots: { index: false }`.
-- [ ] Verifikasi: `npm run lint` ✅, `npm run build` ✅.
+- [x] `app/checkout/page.tsx` — Server Component shell + breadcrumb, render `<CheckoutForm />`.
+- [x] `app/checkout/loading.tsx` — skeleton form + order summary 2 kolom.
+- [x] `app/checkout/error.tsx` — error boundary segment dengan tombol reset + link ke produk.
+- [x] `app/checkout/_components/checkout-form.tsx` (`"use client"`) — orchestrator: layout 2 kolom, validasi via `validateCustomerInfo`, redirect ke `/products` saat cart kosong (`useHydrated` gating), submit handler dengan delay 1.5s, push ke `/checkout/confirmation`.
+- [x] `app/checkout/_components/customer-info-section.tsx` (`"use client"`) — Nama, Email, WhatsApp, ID Game + Server Game (conditional saat ada item kategori `topup`/`account`), Catatan. ARIA `aria-invalid` + `aria-describedby` per error.
+- [x] `app/checkout/_components/payment-method-section.tsx` (`"use client"`) — radio group card-style, dikelompokkan per `type` (Transfer Bank / E-Wallet / QRIS), ikon Lucide (`Landmark`, `Wallet`, `QrCode`).
+- [x] `app/checkout/_components/voucher-section.tsx` (`"use client"`) — input + tombol Terapkan, state idle/loading/valid/invalid, badge `±%` saat valid + tombol hapus, Enter key submits.
+- [x] `app/checkout/_components/order-summary-card.tsx` (`"use client"`) — sticky di desktop (`lg:sticky lg:top-24`), subtotal, diskon voucher, total, tombol "Bayar Sekarang" dengan spinner saat processing, trust signal.
+- [x] `app/checkout/_components/cart-item-row.tsx` (`"use client"`) — thumbnail, title, `qty × harga`, line total. Reuse `formatIDR()`.
+- [x] Metadata: `title: "Checkout"`, `robots: { index: false, follow: false }`.
+- [x] Verifikasi: `npm run lint` ✅, `npm run build` ✅ (route `/checkout` ter-prerender sebagai static shell ○; `CheckoutForm` hydrate client-side dan menjadikan flow dinamis tanpa perlu opt-out static rendering — sudah sesuai karena page tidak mengakses request-time API).
 
-#### Fase 6C — Confirmation Page (`/checkout/confirmation`) ⬜
+#### Fase 6C — Confirmation Page (`/checkout/confirmation`) ✅
 
-- [ ] `app/checkout/confirmation/page.tsx` — Server Component shell + client content.
-- [ ] `app/checkout/confirmation/_components/confirmation-content.tsx` (`"use client"`) — baca order dari Zustand/sessionStorage, tampilkan: ikon sukses, nomor order (generated), ringkasan pesanan, info pembayaran yang dipilih, instruksi pembayaran (mock), CTA "Kembali ke Beranda" + "Lihat Produk Lain".
-- [ ] `app/checkout/confirmation/loading.tsx` — skeleton.
-- [ ] Clear cart setelah order confirmed.
-- [ ] Metadata: `title: "Pesanan Berhasil"`, `robots: { index: false }`.
-- [ ] Verifikasi: `npm run lint` ✅, `npm run build` ✅.
+- [x] `app/checkout/confirmation/page.tsx` — Server Component shell + breadcrumb (Home > Checkout > Konfirmasi), render `<ConfirmationContent />`.
+- [x] `app/checkout/confirmation/loading.tsx` — skeleton (header sukses, meta cards, summary, payment + instructions, CTA).
+- [x] `app/checkout/confirmation/_components/confirmation-content.tsx` (`"use client"`) — header sukses (icon `CheckCircle2` hijau + heading), meta cards (order ID dengan tombol "Salin" + tanggal `Intl.DateTimeFormat('id-ID')`), ringkasan item (reuse `CartItemRow`), totals (subtotal/diskon/total), card metode pembayaran + estimasi pengiriman, instruksi pembayaran bernomor, recap data pemesan, dual CTA (Beranda + Produk Lain).
+- [x] **Snapshot pattern**: `orderResult` dari Zustand di-capture ke local state via "set state during render" (sesuai rule React 19 `react-hooks/set-state-in-effect`), lalu `reset()` dijalankan di `useEffect` agar back/refresh tidak menampilkan data lama.
+- [x] **Empty guard**: jika tidak ada `orderResult` dan belum ada snapshot setelah hidrasi, redirect ke `/products`.
+- [x] Metadata: `title: "Pesanan Berhasil"`, `robots: { index: false, follow: false }`.
+- [x] Verifikasi: `npm run lint` ✅, `npm run build` ✅ (route `/checkout/confirmation` ter-prerender sebagai static shell ○; `ConfirmationContent` hydrate client-side dan baca dari Zustand).
 
 ### Tahap 7 — Polish ⬜
 
