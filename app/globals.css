@@ -73,6 +73,136 @@
   --duration-fast: 120ms;
   --duration-base: 200ms;
   --duration-slow: 360ms;
+
+  /* Animations (Radix Accordion + shared) */
+  --animate-accordion-down: accordion-down var(--duration-base)
+    var(--ease-snappy);
+  --animate-accordion-up: accordion-up var(--duration-base) var(--ease-snappy);
+
+  /* Sheet / Dialog (Radix Dialog) */
+  --animate-overlay-in: overlay-in var(--duration-base) var(--ease-snappy);
+  --animate-overlay-out: overlay-out var(--duration-base) var(--ease-snappy);
+  --animate-sheet-in-right: sheet-in-right var(--duration-slow)
+    var(--ease-snappy);
+  --animate-sheet-out-right: sheet-out-right var(--duration-slow)
+    var(--ease-snappy);
+  --animate-sheet-in-left: sheet-in-left var(--duration-slow) var(--ease-snappy);
+  --animate-sheet-out-left: sheet-out-left var(--duration-slow)
+    var(--ease-snappy);
+  --animate-sheet-in-top: sheet-in-top var(--duration-slow) var(--ease-snappy);
+  --animate-sheet-out-top: sheet-out-top var(--duration-slow) var(--ease-snappy);
+  --animate-sheet-in-bottom: sheet-in-bottom var(--duration-slow)
+    var(--ease-snappy);
+  --animate-sheet-out-bottom: sheet-out-bottom var(--duration-slow)
+    var(--ease-snappy);
+}
+
+@keyframes accordion-down {
+  from {
+    height: 0;
+  }
+  to {
+    height: var(--radix-accordion-content-height);
+  }
+}
+
+@keyframes accordion-up {
+  from {
+    height: var(--radix-accordion-content-height);
+  }
+  to {
+    height: 0;
+  }
+}
+
+@keyframes overlay-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes overlay-out {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
+@keyframes sheet-in-right {
+  from {
+    transform: translateX(100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
+@keyframes sheet-out-right {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(100%);
+  }
+}
+
+@keyframes sheet-in-left {
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
+@keyframes sheet-out-left {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-100%);
+  }
+}
+
+@keyframes sheet-in-top {
+  from {
+    transform: translateY(-100%);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+
+@keyframes sheet-out-top {
+  from {
+    transform: translateY(0);
+  }
+  to {
+    transform: translateY(-100%);
+  }
+}
+
+@keyframes sheet-in-bottom {
+  from {
+    transform: translateY(100%);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+
+@keyframes sheet-out-bottom {
+  from {
+    transform: translateY(0);
+  }
+  to {
+    transform: translateY(100%);
+  }
 }
 
 /* ---------------------------------------------------------------------------

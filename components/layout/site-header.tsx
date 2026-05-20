@@ -3,6 +3,7 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { CartButton } from "@/components/layout/cart-button";
 import { GlobalSearch } from "@/components/layout/global-search";
+import { MobileNav } from "@/components/layout/mobile-nav";
 import { ThemeToggle } from "@/components/common/theme-toggle";
 
 const NAV_LINKS = [
@@ -16,6 +17,8 @@ export function SiteHeader() {
   return (
     <header className="sticky top-0 z-40 border-b border-border bg-bg/80 backdrop-blur supports-backdrop-filter:bg-bg/60">
       <div className="container-page flex h-16 items-center gap-4">
+        <MobileNav />
+
         <Link
           href="/"
           className="flex items-center gap-2 text-fg transition-opacity hover:opacity-90"

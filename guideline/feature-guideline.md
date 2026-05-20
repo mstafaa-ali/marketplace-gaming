@@ -55,26 +55,123 @@ Kerjakan secara bertahap. Setiap tahap harus _runnable_ dan ter-lint bersih sebe
 
 > **Belum dikerjakan di Tahap 2:** `components/layout/mobile-nav.tsx` (Sheet drawer untuk navigasi mobile). Saat ini header sudah responsif (search row terpisah di mobile, nav links tersembunyi di < `lg`). Mobile nav drawer akan dibuat saat shadcn `Sheet` dipasang — dijadwalkan bersama Filter Drawer di Tahap 4 supaya satu kali setup Radix Dialog/Sheet.
 
-### Tahap 3 — Landing Page (`/`) ⬜
+### Tahap 3 — Landing Page (`/`) ✅
 
 Kerjakan section-by-section, masing-masing jadi komponen sendiri (lihat §4).
 
-### Tahap 4 — Product Listing (`/products`) ⬜
+- [x] Hero (`HeroSection`)
+- [x] Promo Carousel (`PromoCarousel` + `PromoCarouselTrack` client)
+- [x] Popular Games (`PopularGameGrid`)
+- [x] Featured Products (`FeaturedProducts` di-`<Suspense>` dengan skeleton)
+- [x] Testimoni Customer (`TestimonialGrid`) — kartu rating, blockquote, avatar inisial dengan gradient ungu
+- [x] FAQ Accordion (`FaqAccordion`) — Radix Accordion (`components/ui/accordion.tsx`) + cached data via `getFaqItems()`
+- [x] CTA penutup (`CtaClosing`) — section ungu glass dengan trio highlight (anti-minus, top up cepat, support 24 jam) + dual CTA ke `/products` dan `/products?category=topup`
 
-- [ ] Server-render daftar awal dari `searchParams`.
-- [ ] Sidebar filter (desktop) + Drawer filter (mobile, pakai shadcn Sheet).
-- [ ] Mobile nav drawer (digabung dengan setup Sheet di tahap ini).
-- [ ] Sorting + Search + Pagination via URL.
-- [ ] Empty state, skeleton, error boundary.
+### Tahap 4 — Product Listing (`/products`) ✅
 
-### Tahap 5 — Product Detail (`/products/[slug]`) ⬜
+Dipecah jadi 3 fase agar tiap fase _shippable_.
 
-- [ ] SSR per request (tanpa `use cache`) supaya stok real-time.
-- [ ] Galeri media, tab spesifikasi, sticky CTA card.
-- [ ] Related products (cached, di-`Suspense`).
-- [ ] `generateMetadata` per slug.
+#### Fase 4A — Listing Core (server-driven, URL-as-state) ✅
 
-### Tahap 6 — Polish ⬜
+- [x] `lib/constants/products.ts` — `DEFAULT_PER_PAGE`, `MAX_PER_PAGE`, `SORT_OPTIONS`, `CATEGORY_LABELS`.
+- [x] `lib/utils/product-query.ts` — `parseProductQuery(sp)` + `buildProductsHref(query, override)` (tahan terhadap URL hand-edited).
+- [x] `hooks/use-debounced-value.ts` — debounce generik untuk search input.
+- [x] `app/products/page.tsx` — Server Component, `searchParams: Promise<...>`, `generateMetadata` per kombinasi (noindex untuk filter aktif), call `searchProducts()`.
+- [x] `app/products/loading.tsx` — skeleton header + toolbar + grid.
+- [x] `app/products/error.tsx` — error boundary segment dengan tombol `reset`.
+- [x] `app/products/_components/product-listing-toolbar.tsx` — search + sort + total hits.
+- [x] `app/products/_components/product-search-input.tsx` (`"use client"`) — debounced (350ms), `router.replace` + `useTransition`, sync ulang dari URL.
+- [x] `app/products/_components/product-sort-select.tsx` (`"use client"`) — native `<select>` + custom chevron, `router.push` saat berubah.
+- [x] `app/products/_components/product-grid.tsx` — grid 1/2/3/4 kolom dengan LCP priority untuk 2 kartu pertama.
+- [x] `app/products/_components/product-pagination.tsx` — link-based, windowed (1, ..., n-1, n, n+1, ..., last), pertahankan query lain.
+- [x] `app/products/_components/product-active-filters.tsx` — chip filter aktif yang bisa dihapus (link statis, tanpa JS).
+- [x] `app/products/_components/product-listing-empty.tsx` — empty state Bahasa Indonesia + CTA reset.
+- [x] Verifikasi: `npm run lint` ✅, `npm run build` ✅ (route `/products` ter-mark `ƒ` dynamic — sesuai karena `searchParams` request-time API).
+
+#### Fase 4B — Filter Sidebar + Drawer (shadcn Sheet) ✅
+
+- [x] Install `@radix-ui/react-dialog`.
+- [x] `components/ui/sheet.tsx` — shadcn-style Sheet primitive (Radix Dialog wrapper) dengan animasi keyframe (overlay fade + slide per side).
+- [x] `components/ui/input.tsx` — themed input primitive (number spinners hidden, focus ring violet).
+- [x] `stores/filter-store.ts` — draft filter Zustand (sebelum apply ke URL), `draftToOverride()` helper.
+- [x] `app/products/_components/product-filter-form.tsx` (`"use client"`) — checkbox group game (multi), radio kategori, range harga, tombol Terapkan & Reset. Shared antara sidebar dan drawer.
+- [x] `app/products/_components/product-filter-sidebar.tsx` — wrapper desktop (sticky `lg:block`, hidden di mobile).
+- [x] `app/products/_components/product-filter-drawer.tsx` (`"use client"`) — wrapper mobile dengan Sheet (side left) + tombol "Filter" dengan badge count.
+- [x] Update `app/products/page.tsx` ke layout 2 kolom `lg:grid-cols-[260px_minmax(0,1fr)]` + parallel fetch games.
+- [x] Update `app/products/_components/product-listing-toolbar.tsx` — `leadingSlot` prop untuk drawer trigger.
+- [x] Animasi Sheet via `@keyframes` di `globals.css` (overlay-in/out, sheet-in/out per side) — tidak butuh `tailwindcss-animate`.
+- [x] Verifikasi: `npm run lint` ✅, `npm run build` ✅.
+
+#### Fase 4C — Mobile Nav + QA ✅
+
+- [x] `components/layout/mobile-nav.tsx` (`"use client"`) — Sheet drawer (side left) berisi nav links + ikon per item, active state berdasarkan `pathname`, auto-close on navigate.
+- [x] Update `components/layout/site-header.tsx` — hamburger `<MobileNav />` di `< lg`, tersembunyi di desktop.
+- [x] Verifikasi: `npm run lint` ✅, `npm run build` ✅ (route `/` static ●, `/products` dynamic ƒ).
+
+### Tahap 5 — Product Detail (`/products/[slug]`) ✅
+
+Dipecah jadi 3 fase agar tiap fase _shippable_.
+
+#### Fase 5A — Page Shell + Data + Metadata ✅
+
+- [x] `app/products/[slug]/page.tsx` — Server Component, `params: Promise<{ slug }>`, panggil `getProductBySlug()`, `notFound()` jika null, `generateMetadata` per produk (title, description, OG image).
+- [x] `app/products/[slug]/loading.tsx` — skeleton layout 2 kolom (gallery + specs kiri, buy card kanan), breadcrumb skeleton.
+- [x] `app/products/[slug]/error.tsx` — error boundary segment dengan tombol reset + link kembali ke listing.
+- [x] Breadcrumb navigasi (Home > Produk > [title]) menggunakan `next/link`.
+- [x] Route `/products/[slug]` ter-mark `ƒ` dynamic — sesuai karena stok harus real-time.
+- [x] Verifikasi: `npm run lint` ✅, `npm run build` ✅.
+
+#### Fase 5B — Komponen Utama (Gallery, Specs, BuyCard) ✅
+
+- [x] `app/products/[slug]/_components/product-gallery.tsx` (`"use client"`) — thumbnail strip + main image, keyboard navigable (ArrowLeft/ArrowRight), active thumbnail auto-scroll, counter "n / total", ARIA roles (`group`, `tablist`, `tab`).
+- [x] `app/products/[slug]/_components/product-specs.tsx` — 3 section: Highlights (bullet grid), Spesifikasi (striped key-value table), Cara Pemesanan (numbered steps). Ikon Lucide per section, `aria-labelledby`.
+- [x] `app/products/[slug]/_components/product-buy-card.tsx` (`"use client"`) — sticky di desktop (`lg:sticky lg:top-24`), reuse `PriceTag`/`StockBadge`/`DiscountBadge`, quantity selector (+/-), add-to-cart via Zustand, feedback "Ditambahkan!" 2 detik, disabled + "Sold Out" saat habis, trust signals.
+- [x] Update `app/products/[slug]/page.tsx` — komposisi bersih menggunakan ketiga komponen baru.
+- [x] Verifikasi: `npm run lint` ✅, `npm run build` ✅.
+
+#### Fase 5C — Related Products + Polish ✅
+
+- [x] `app/products/[slug]/_components/related-products.tsx` — async Server Component, panggil `getRelatedProducts()` (cached), grid 4 kolom, return null jika kosong.
+- [x] `app/products/[slug]/_components/related-products-skeleton.tsx` — skeleton fallback untuk Suspense boundary (4 card skeleton).
+- [x] Wrap `RelatedProducts` dalam `<Suspense>` di page dengan separator border-top.
+- [x] Verifikasi: `npm run lint` ✅, `npm run build` ✅ (route `/` static ●, `/products` dynamic ƒ, `/products/[slug]` dynamic ƒ).
+
+### Tahap 6 — Checkout UI (`/checkout` + `/checkout/confirmation`) ⬜
+
+Simulasi checkout front-end (tanpa backend payment gateway). Dipecah jadi 3 fase.
+
+#### Fase 6A — Tipe, Store & Data Layer ⬜
+
+- [ ] `lib/types/checkout.ts` — `CustomerInfo`, `PaymentMethod`, `VoucherCode`, `OrderSummary`, `CheckoutState`.
+- [ ] `stores/checkout-store.ts` — Zustand store untuk draft checkout (customer info, selected payment, voucher). Tidak di-persist (ephemeral per session).
+- [ ] `lib/constants/checkout.ts` — `PAYMENT_METHODS` (Transfer Bank, E-Wallet, QRIS), `VOUCHER_CODES` (mock valid codes + diskon).
+- [ ] `lib/utils/checkout.ts` — `validateVoucher()`, `calculateOrderSummary()` (subtotal, diskon voucher, total).
+- [ ] `lib/data/mock-checkout.ts` — mock order result untuk confirmation page.
+
+#### Fase 6B — Checkout Page (`/checkout`) ⬜
+
+- [ ] `app/checkout/page.tsx` — Server Component shell, redirect ke `/products` jika cart kosong (baca dari client via layout pattern).
+- [ ] `app/checkout/loading.tsx` — skeleton form + order summary.
+- [ ] `app/checkout/error.tsx` — error boundary.
+- [ ] `app/checkout/_components/checkout-form.tsx` (`"use client"`) — multi-section form: data customer, pilihan pembayaran, voucher code.
+- [ ] `app/checkout/_components/customer-info-section.tsx` (`"use client"`) — input Nama, Email, No. WhatsApp, ID Game (opsional per kategori). Validasi inline.
+- [ ] `app/checkout/_components/payment-method-section.tsx` (`"use client"`) — radio group metode pembayaran (Transfer Bank BCA/Mandiri/BRI, E-Wallet GoPay/OVO/Dana, QRIS). Ikon per metode.
+- [ ] `app/checkout/_components/voucher-section.tsx` (`"use client"`) — input kode voucher + tombol "Terapkan", feedback valid/invalid, badge diskon applied.
+- [ ] `app/checkout/_components/order-summary-card.tsx` (`"use client"`) — sticky di desktop, list item dari cart (thumbnail, title, qty, harga), subtotal, diskon voucher, total, tombol "Bayar Sekarang".
+- [ ] `app/checkout/_components/cart-item-row.tsx` — baris item di order summary (reusable).
+- [ ] Metadata: `title: "Checkout"`, `robots: { index: false }`.
+- [ ] Verifikasi: `npm run lint` ✅, `npm run build` ✅.
+
+#### Fase 6C — Confirmation Page (`/checkout/confirmation`) ⬜
+
+- [ ] `app/checkout/confirmation/page.tsx` — Server Component shell + client content.
+- [ ] `app/checkout/confirmation/_components/confirmation-content.tsx` (`"use client"`) — baca order dari Zustand/sessionStorage, tampilkan: ikon sukses, nomor order (generated), ringkasan pesanan, info pembayaran yang dipilih, instruksi pembayaran (mock), CTA "Kembali ke Beranda" + "Lihat Produk Lain".
+- [ ] `app/checkout/confirmation/loading.tsx` — skeleton.
+- [ ] Clear cart setelah order confirmed.
+- [ ] Metadata: `title: "Pesanan Berhasil"`, `robots: { index: false }`.
+- [ ] Verifikasi: `npm run lint` ✅, `npm run build` ✅.
+
+### Tahap 7 — Polish ⬜
 
 - [ ] Aktifkan `cacheComponents: true` di `next.config.ts` dan un-comment directive `"use cache"`/`cacheLife`/`cacheTag` di `lib/data/*.ts`.
 - [ ] OG image dinamis (`opengraph-image.tsx`).
@@ -91,6 +188,8 @@ Kerjakan section-by-section, masing-masing jadi komponen sendiri (lihat §4).
 | `/` Landing                   | Prerendered shell + cached sections (`"use cache"` + `cacheLife('hours')`)                                                                                     | Konten promosional, jarang berubah; loading harus instan untuk SEO          |
 | `/products` Listing           | Server Component, query param drives SSR. Inner list bisa di-cache per kombinasi filter atau di-stream di `<Suspense>`                                         | Hasil filter umumnya bisa di-cache pendek; pagination konsisten via URL     |
 | `/products/[slug]` Detail     | **Tidak** di-cache. Fetch dilakukan langsung di Server Component supaya `stockStatus` selalu real-time. `RelatedProducts` di-`<Suspense>` dengan `"use cache"` | Mencegah double-buy untuk akun game                                         |
+| `/checkout`                   | Client-heavy, **tidak** di-cache. Cart state dari Zustand (client). Form ephemeral. `robots: noindex`.                                                         | Data sensitif (email, WA), session-specific; tidak boleh ter-cache          |
+| `/checkout/confirmation`      | Client-heavy, **tidak** di-cache. Baca order result dari sessionStorage/Zustand. `robots: noindex`.                                                            | Hasil order unik per transaksi                                              |
 | Section "Related" / "Popular" | `"use cache"` + `cacheTag('products')`                                                                                                                         | Murah di-invalidate via `revalidateTag('products')` saat ada perubahan stok |
 
 Pola implementasi:
@@ -155,6 +254,15 @@ app/
 │     ├─ error.tsx
 │     ├─ opengraph-image.tsx   # OG dinamis per produk
 │     └─ _components/          # Komponen privat untuk halaman ini
+├─ checkout/
+│  ├─ page.tsx                 # Checkout form (client-heavy)
+│  ├─ loading.tsx
+│  ├─ error.tsx
+│  ├─ _components/             # Form sections, order summary
+│  └─ confirmation/
+│     ├─ page.tsx              # Order confirmation
+│     ├─ loading.tsx
+│     └─ _components/          # Confirmation content
 └─ _components/                # Section landing privat (tidak routable)
 
 components/
@@ -164,14 +272,15 @@ components/
 └─ product/                    # ProductCard, ProductGallery, ProductFilterSidebar, ...
 
 lib/
-├─ types/                      # Product, Game, Voucher, TopUpItem, Review, FAQItem, Cart
+├─ types/                      # Product, Game, Voucher, TopUpItem, Review, FAQItem, Cart, Checkout
 ├─ data/                       # Data access (cached) + mock data
-├─ utils/                      # cn, formatCurrency, slugify, ...
-└─ constants/                  # Enum game, sort options, dsb.
+├─ utils/                      # cn, formatCurrency, slugify, checkout helpers, ...
+└─ constants/                  # Enum game, sort options, payment methods, dsb.
 
 stores/
 ├─ cart-store.ts               # Zustand: cart UI state
-└─ filter-store.ts             # Zustand: ephemeral filter draft (sebelum apply ke URL)
+├─ filter-store.ts             # Zustand: ephemeral filter draft (sebelum apply ke URL)
+└─ checkout-store.ts           # Zustand: ephemeral checkout draft (customer, payment, voucher)
 
 hooks/
 ├─ use-debounced-value.ts
@@ -208,6 +317,7 @@ Path: `app/page.tsx`. Server Component. Tidak boleh ada akses runtime di body ut
 - `app/_components/featured-products.tsx`
 - `app/_components/testimonial-grid.tsx`
 - `app/_components/faq-accordion.tsx`
+- `app/_components/cta-closing.tsx`
 - `components/product/product-card.tsx`
 - `components/common/discount-badge.tsx`
 - `components/common/price-tag.tsx`
@@ -226,6 +336,7 @@ import FeaturedProducts from "./_components/featured-products";
 import FeaturedProductsSkeleton from "./_components/featured-products-skeleton";
 import TestimonialGrid from "./_components/testimonial-grid";
 import FaqAccordion from "./_components/faq-accordion";
+import CtaClosing from "./_components/cta-closing";
 
 export default function HomePage() {
   return (
@@ -238,12 +349,13 @@ export default function HomePage() {
       </Suspense>
       <TestimonialGrid />
       <FaqAccordion />
+      <CtaClosing />
     </>
   );
 }
 ```
 
-`FeaturedProducts` adalah async Server Component yang memanggil `getFeaturedProducts()` (cached, lihat §2).
+`FeaturedProducts` adalah async Server Component yang memanggil `getFeaturedProducts()` (cached, lihat §2). `CtaClosing` murni statis — di-render di server tanpa fetch.
 
 ### 4.4 Definition of Done
 
@@ -543,10 +655,11 @@ export const useCartStore = create<CartState>()(
 
 1. `npm run lint` bersih.
 2. `npm run build` sukses.
-3. Smoke test 3 halaman utama di mobile viewport (375px) dan desktop (1440px).
+3. Smoke test 4 halaman utama di mobile viewport (375px) dan desktop (1440px): `/`, `/products`, `/products/[slug]`, `/checkout`.
 4. Tab keyboard dari header sampai footer tanpa "trap".
 5. Lighthouse di mode incognito: Performance ≥ 90, Accessibility ≥ 95, Best Practices ≥ 95, SEO 100.
 6. Verifikasi tidak ada error/warning di Console & Network.
+7. Checkout flow end-to-end: add to cart → checkout → fill form → submit → confirmation.
 
 ---
 
@@ -562,3 +675,378 @@ Project ini **Next.js 16**. Hal-hal yang sering keliru kalau mengandalkan ingata
 - Untuk men-disable streaming metadata pada bot tertentu, gunakan `htmlLimitedBots` di `next.config.ts` (bukan flag eksperimental lama).
 
 Selalu cek `node_modules/next/dist/docs/01-app/` saat ragu.
+
+---
+
+## 14. Halaman 4 — Checkout (`/checkout` + `/checkout/confirmation`)
+
+Simulasi checkout front-end tanpa integrasi payment gateway. Fokus pada UX form yang bersih, validasi inline, dan feedback yang jelas. Seluruh state checkout bersifat ephemeral (tidak di-persist ke localStorage).
+
+### 14.1 Flow Checkout
+
+```
+Cart (Zustand) → /checkout (form) → /checkout/confirmation (success)
+```
+
+1. User klik "Checkout" / "Bayar Sekarang" dari cart atau product buy card.
+2. Halaman `/checkout` menampilkan form data customer, pilihan pembayaran, input voucher, dan order summary.
+3. User submit → validasi client-side → simulasi proses (delay 1.5s) → redirect ke `/checkout/confirmation`.
+4. Confirmation page menampilkan detail order + instruksi pembayaran mock. Cart di-clear.
+
+### 14.2 Tipe Domain Checkout
+
+```ts
+// lib/types/checkout.ts
+
+export type PaymentMethodType = "bank_transfer" | "ewallet" | "qris";
+
+export interface PaymentMethod {
+  id: string;
+  type: PaymentMethodType;
+  name: string;
+  /** Nama ikon Lucide atau path ke asset */
+  icon: string;
+  description?: string;
+}
+
+export interface CustomerInfo {
+  name: string;
+  email: string;
+  whatsapp: string;
+  /** ID in-game, wajib untuk kategori topup & account */
+  gameId?: string;
+  /** Server game, opsional */
+  gameServer?: string;
+  notes?: string;
+}
+
+export interface VoucherResult {
+  code: string;
+  valid: boolean;
+  discountPercent?: number;
+  discountAmount?: number;
+  message: string;
+}
+
+export interface OrderSummary {
+  items: OrderItem[];
+  subtotal: number;
+  voucherDiscount: number;
+  voucherCode?: string;
+  total: number;
+  paymentMethod: PaymentMethod;
+  customer: CustomerInfo;
+}
+
+export interface OrderItem {
+  id: string;
+  title: string;
+  price: number;
+  qty: number;
+  thumbnailUrl?: string;
+}
+
+export interface OrderResult {
+  orderId: string;
+  orderDate: string; // ISO
+  summary: OrderSummary;
+  paymentInstructions: string[];
+  estimatedDelivery: string;
+}
+```
+
+### 14.3 Zustand Store — Checkout
+
+```ts
+// stores/checkout-store.ts
+"use client";
+
+import { create } from "zustand";
+import type {
+  CustomerInfo,
+  PaymentMethod,
+  VoucherResult,
+  OrderResult,
+} from "@/lib/types/checkout";
+
+interface CheckoutState {
+  customer: Partial<CustomerInfo>;
+  selectedPayment: PaymentMethod | null;
+  voucher: VoucherResult | null;
+  orderResult: OrderResult | null;
+  isProcessing: boolean;
+
+  setCustomer: (info: Partial<CustomerInfo>) => void;
+  setPayment: (method: PaymentMethod) => void;
+  applyVoucher: (result: VoucherResult) => void;
+  clearVoucher: () => void;
+  setProcessing: (v: boolean) => void;
+  setOrderResult: (result: OrderResult) => void;
+  reset: () => void;
+}
+
+export const useCheckoutStore = create<CheckoutState>()((set) => ({
+  customer: {},
+  selectedPayment: null,
+  voucher: null,
+  orderResult: null,
+  isProcessing: false,
+
+  setCustomer: (info) => set((s) => ({ customer: { ...s.customer, ...info } })),
+  setPayment: (method) => set({ selectedPayment: method }),
+  applyVoucher: (result) => set({ voucher: result }),
+  clearVoucher: () => set({ voucher: null }),
+  setProcessing: (v) => set({ isProcessing: v }),
+  setOrderResult: (result) => set({ orderResult: result }),
+  reset: () =>
+    set({
+      customer: {},
+      selectedPayment: null,
+      voucher: null,
+      orderResult: null,
+      isProcessing: false,
+    }),
+}));
+```
+
+### 14.4 Constants — Payment Methods & Voucher Codes
+
+```ts
+// lib/constants/checkout.ts
+
+import type { PaymentMethod } from "@/lib/types/checkout";
+
+export const PAYMENT_METHODS: PaymentMethod[] = [
+  {
+    id: "bca",
+    type: "bank_transfer",
+    name: "Bank BCA",
+    icon: "Landmark",
+    description: "Transfer manual ke rekening BCA",
+  },
+  {
+    id: "mandiri",
+    type: "bank_transfer",
+    name: "Bank Mandiri",
+    icon: "Landmark",
+    description: "Transfer manual ke rekening Mandiri",
+  },
+  {
+    id: "bri",
+    type: "bank_transfer",
+    name: "Bank BRI",
+    icon: "Landmark",
+    description: "Transfer manual ke rekening BRI",
+  },
+  {
+    id: "gopay",
+    type: "ewallet",
+    name: "GoPay",
+    icon: "Wallet",
+    description: "Bayar via GoPay",
+  },
+  {
+    id: "ovo",
+    type: "ewallet",
+    name: "OVO",
+    icon: "Wallet",
+    description: "Bayar via OVO",
+  },
+  {
+    id: "dana",
+    type: "ewallet",
+    name: "Dana",
+    icon: "Wallet",
+    description: "Bayar via Dana",
+  },
+  {
+    id: "qris",
+    type: "qris",
+    name: "QRIS",
+    icon: "QrCode",
+    description: "Scan QR dari aplikasi apapun",
+  },
+];
+
+/** Mock voucher codes untuk simulasi */
+export const MOCK_VOUCHERS: Record<
+  string,
+  { discountPercent: number; message: string }
+> = {
+  HEMAT10: { discountPercent: 10, message: "Diskon 10% berhasil diterapkan!" },
+  GAMING20: { discountPercent: 20, message: "Diskon 20% berhasil diterapkan!" },
+  NEWUSER15: {
+    discountPercent: 15,
+    message: "Diskon 15% untuk pengguna baru!",
+  },
+};
+```
+
+### 14.5 Utility — Checkout Helpers
+
+```ts
+// lib/utils/checkout.ts
+
+import { MOCK_VOUCHERS } from "@/lib/constants/checkout";
+import type { VoucherResult, OrderItem } from "@/lib/types/checkout";
+
+export function validateVoucher(code: string): VoucherResult {
+  const normalized = code.trim().toUpperCase();
+  const found = MOCK_VOUCHERS[normalized];
+  if (!found) {
+    return {
+      code: normalized,
+      valid: false,
+      message: "Kode voucher tidak valid.",
+    };
+  }
+  return {
+    code: normalized,
+    valid: true,
+    discountPercent: found.discountPercent,
+    message: found.message,
+  };
+}
+
+export function calculateOrderSummary(
+  items: OrderItem[],
+  discountPercent?: number,
+): { subtotal: number; voucherDiscount: number; total: number } {
+  const subtotal = items.reduce((sum, item) => sum + item.price * item.qty, 0);
+  const voucherDiscount = discountPercent
+    ? Math.round(subtotal * (discountPercent / 100))
+    : 0;
+  const total = subtotal - voucherDiscount;
+  return { subtotal, voucherDiscount, total: Math.max(total, 0) };
+}
+
+export function generateOrderId(): string {
+  const timestamp = Date.now().toString(36).toUpperCase();
+  const random = Math.random().toString(36).substring(2, 6).toUpperCase();
+  return `GM-${timestamp}-${random}`;
+}
+```
+
+### 14.6 Pola Page — Checkout
+
+```tsx
+// app/checkout/page.tsx
+import type { Metadata } from "next";
+import CheckoutForm from "./_components/checkout-form";
+
+export const metadata: Metadata = {
+  title: "Checkout",
+  robots: { index: false, follow: false },
+};
+
+export default function CheckoutPage() {
+  return (
+    <main className="container py-8">
+      <h1 className="text-2xl font-bold mb-6">Checkout</h1>
+      <CheckoutForm />
+    </main>
+  );
+}
+```
+
+`CheckoutForm` adalah Client Component utama yang mengorkestrasikan seluruh form. Layout 2 kolom di desktop: form kiri, order summary kanan (sticky).
+
+```tsx
+// app/checkout/_components/checkout-form.tsx (sketch)
+"use client";
+
+export default function CheckoutForm() {
+  // Baca cart dari useCartStore
+  // Redirect ke /products jika cart kosong (useEffect + router.replace)
+  // Render: CustomerInfoSection + PaymentMethodSection + VoucherSection | OrderSummaryCard
+  // Submit handler: validate → setProcessing → delay 1.5s → generate order → setOrderResult → router.push('/checkout/confirmation')
+}
+```
+
+### 14.7 Komponen Checkout
+
+| Komponen                     | Tipe   | Tanggung Jawab                                                                                                                                            |
+| ---------------------------- | ------ | --------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `checkout-form.tsx`          | Client | Orchestrator: layout 2 kolom, submit logic, redirect jika cart kosong                                                                                     |
+| `customer-info-section.tsx`  | Client | Form fields: Nama*, Email*, WhatsApp\*, ID Game (conditional), Server, Catatan. Validasi inline (required, email format, WA format 08xx).                 |
+| `payment-method-section.tsx` | Client | Radio group dengan card-style per metode. Grouped by type (Bank Transfer, E-Wallet, QRIS). Ikon Lucide.                                                   |
+| `voucher-section.tsx`        | Client | Input + tombol Terapkan. State: idle / loading / valid / invalid. Badge diskon jika valid. Tombol hapus voucher.                                          |
+| `order-summary-card.tsx`     | Client | Sticky sidebar: list items, subtotal, diskon, total, tombol "Bayar Sekarang" (disabled saat form incomplete/processing). Loading spinner saat processing. |
+| `cart-item-row.tsx`          | Client | Baris item: thumbnail, title, qty × harga. Compact.                                                                                                       |
+
+### 14.8 Pola Page — Confirmation
+
+```tsx
+// app/checkout/confirmation/page.tsx
+import type { Metadata } from "next";
+import ConfirmationContent from "./_components/confirmation-content";
+
+export const metadata: Metadata = {
+  title: "Pesanan Berhasil",
+  robots: { index: false, follow: false },
+};
+
+export default function ConfirmationPage() {
+  return (
+    <main className="container py-8">
+      <ConfirmationContent />
+    </main>
+  );
+}
+```
+
+```tsx
+// app/checkout/confirmation/_components/confirmation-content.tsx (sketch)
+"use client";
+
+// Baca orderResult dari useCheckoutStore
+// Jika null → redirect ke /checkout atau /products
+// Tampilkan:
+//   - Ikon CheckCircle2 hijau + "Pesanan Berhasil!"
+//   - Order ID (bold, copyable)
+//   - Tanggal order
+//   - Tabel ringkasan item
+//   - Metode pembayaran yang dipilih
+//   - Instruksi pembayaran (numbered list)
+//   - Estimasi pengiriman
+//   - Dual CTA: "Kembali ke Beranda" (/) + "Lihat Produk Lain" (/products)
+// useEffect: clear cart store on mount
+```
+
+### 14.9 Validasi Form
+
+Validasi dilakukan client-side (simulasi). Rules:
+
+| Field          | Validasi                                                 |
+| -------------- | -------------------------------------------------------- |
+| Nama           | Required, min 3 karakter                                 |
+| Email          | Required, format email valid                             |
+| WhatsApp       | Required, format `08xxxxxxxxxx` (10-13 digit, awalan 08) |
+| ID Game        | Required jika kategori item = `topup` atau `account`     |
+| Server Game    | Opsional                                                 |
+| Payment Method | Required (harus pilih salah satu)                        |
+
+Error ditampilkan inline di bawah field dengan warna `text-destructive`. Focus otomatis ke field pertama yang error saat submit.
+
+### 14.10 UX Details
+
+- **Empty cart guard**: Jika user akses `/checkout` dengan cart kosong, redirect ke `/products` dengan toast/info.
+- **Processing state**: Tombol "Bayar Sekarang" menampilkan spinner + "Memproses..." selama 1.5 detik (simulasi API call).
+- **Voucher feedback**: Animasi badge muncul saat voucher valid. Shake + merah saat invalid.
+- **Order summary responsive**: Di mobile, order summary tampil di bawah form (bukan sticky sidebar). Di desktop, sticky `lg:sticky lg:top-24`.
+- **Breadcrumb**: Home > Checkout (di page) / Home > Checkout > Konfirmasi (di confirmation).
+- **Back navigation**: Tombol "← Kembali ke Keranjang" di atas form (link ke halaman sebelumnya atau `/products`).
+
+### 14.11 Definition of Done
+
+- [ ] Cart kosong → redirect ke `/products`.
+- [ ] Semua field required tervalidasi sebelum submit.
+- [ ] Voucher code valid mengurangi total di order summary secara real-time.
+- [ ] Voucher code invalid menampilkan pesan error.
+- [ ] Processing state menampilkan loading indicator.
+- [ ] Confirmation page menampilkan semua detail order.
+- [ ] Cart ter-clear setelah order confirmed.
+- [ ] Navigasi keyboard berfungsi di seluruh form (Tab, Enter submit, radio Arrow keys).
+- [ ] Mobile layout berfungsi baik (form full-width, summary di bawah).
+- [ ] `npm run lint` ✅, `npm run build` ✅.
+- [ ] Route `/checkout` dan `/checkout/confirmation` ter-mark `ƒ` dynamic.
