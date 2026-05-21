@@ -1,4 +1,4 @@
-import { Coins, Gamepad2, Ticket, type LucideIcon } from "lucide-react";
+import Image from "next/image";
 import Link from "next/link";
 import { cn } from "@/lib/utils/cn";
 
@@ -12,18 +12,14 @@ import { cn } from "@/lib/utils/cn";
 interface CategoryCard {
   /** Tujuan navigasi kategori (`/products/{kategori}`). */
   readonly href: string;
-  /** Komponen ikon Lucide yang ditaruh di tengah panel gradient. */
-  readonly Icon: LucideIcon;
-  /** Tailwind utility `from-… to-…` untuk panel gradient (lihat §6.9). */
-  readonly accent: string;
+  /** Gambar untuk panel kategori. */
+  readonly image: string;
   /** Judul kartu (mis. "Akun Game"). */
   readonly title: string;
   /** Deskripsi singkat 1–2 kalimat tentang kategori. */
   readonly description: string;
   /** Teks `aria-label` lengkap untuk dibaca screen reader. */
   readonly ariaLabel: string;
-  /** Optional video URL to replace the icon panel with a video background. */
-  readonly video?: string;
 }
 
 /**
@@ -34,17 +30,14 @@ interface CategoryCard {
 const CATEGORY_CARDS: readonly CategoryCard[] = [
   {
     href: "/products/account",
-    Icon: Gamepad2,
-    accent: "from-violet-500 to-blue-500",
+    image: "/image/category-chooser/valo-akun-lightmode.png",
     title: "Akun Game",
     description: "Pilih akun game terverifikasi dengan garansi anti-minus.",
     ariaLabel: "Buka kategori Akun Game",
-    video: "/video/akun-video.MOV",
   },
   {
     href: "/products/topup",
-    Icon: Coins,
-    accent: "from-emerald-500 to-violet-600",
+    image: "/image/category-chooser/ml-topup-lightmode.png",
     title: "Top Up Game",
     description:
       "Top up diamond, UC, VP, dan lainnya. Proses 1-3 menit langsung ke akun.",
@@ -52,8 +45,7 @@ const CATEGORY_CARDS: readonly CategoryCard[] = [
   },
   {
     href: "/products/voucher",
-    Icon: Ticket,
-    accent: "from-amber-500 to-pink-500",
+    image: "/image/category-chooser/voucher-lightmode.jpg",
     title: "Voucher Digital",
     description:
       "Voucher Steam, Google Play, PlayStation, dan App Store. Instan via email.",
@@ -86,72 +78,41 @@ const CATEGORY_CARDS: readonly CategoryCard[] = [
 export function CategoryChooser() {
   return (
     <ul role="list" className="grid grid-cols-1 gap-4 sm:grid-cols-3 sm:gap-6">
-      {CATEGORY_CARDS.map(
-        ({ href, Icon, accent, title, description, ariaLabel, video }) => (
-          <li key={href}>
-            <Link
-              href={href}
-              aria-label={ariaLabel}
-              className={cn(
-                "group relative block h-full overflow-hidden rounded-xl border border-border",
-                video ? "bg-transparent" : "bg-bg-elevated",
-                "transition-all duration-(--duration-base) ease-snappy",
-                "hover:-translate-y-0.5 hover:border-violet-500/60 hover:shadow-glow",
-                "focus-visible:-translate-y-0.5 focus-visible:border-violet-400",
-              )}
+      {CATEGORY_CARDS.map(({ href, image, title, description, ariaLabel }) => (
+        <li key={href}>
+          <Link
+            href={href}
+            aria-label={ariaLabel}
+            className={cn(
+              "group relative block h-full overflow-hidden rounded-xl border border-border bg-bg-elevated",
+              "transition-all duration-(--duration-base) ease-snappy",
+              "hover:-translate-y-0.5 hover:border-violet-500/60 hover:shadow-glow",
+              "focus-visible:-translate-y-0.5 focus-visible:border-violet-400",
+            )}
+          >
+            {/* Image panel */}
+            <div
+              aria-hidden
+              className="relative aspect-4/3 w-full overflow-hidden"
             >
-              {/* Video background covering the entire card */}
-              {video && (
-                <video
-                  src={video}
-                  autoPlay
-                  loop
-                  muted
-                  playsInline
-                  aria-hidden
-                  className="absolute inset-0 h-full w-full object-cover object-top"
-                />
-              )}
+              <Image
+                src={image}
+                alt=""
+                fill
+                sizes="(min-width: 640px) 33vw, 100vw"
+                className="object-cover object-top"
+              />
+            </div>
 
-              <div
-                aria-hidden
-                className={cn(
-                  "relative aspect-4/3 w-full overflow-hidden",
-                  !video && "bg-linear-to-br",
-                  !video && accent,
-                )}
-              >
-                {!video && (
-                  <>
-                    <div className="pointer-events-none absolute inset-0 bg-linear-to-t from-bg/80 via-transparent to-white/10" />
-                    <div className="absolute inset-0 grid place-items-center">
-                      <span className="grid size-14 place-items-center rounded-2xl bg-white/15 text-white shadow-md backdrop-blur transition-transform duration-(--duration-base) ease-snappy group-hover:scale-105 sm:size-16">
-                        <Icon
-                          className="size-7 sm:size-8"
-                          strokeWidth={1.75}
-                          aria-hidden
-                        />
-                      </span>
-                    </div>
-                  </>
-                )}
-              </div>
-
-              <div
-                className={cn(
-                  "relative space-y-1 p-4 sm:p-5",
-                  video && "bg-bg-elevated/60 backdrop-blur-sm",
-                )}
-              >
-                <h3 className="font-display text-base font-semibold tracking-tight text-fg sm:text-lg">
-                  {title}
-                </h3>
-                <p className="text-sm text-fg-muted">{description}</p>
-              </div>
-            </Link>
-          </li>
-        ),
-      )}
+            <div className="relative space-y-1 p-4 sm:p-5">
+              <h3 className="font-display text-base font-semibold tracking-tight text-fg sm:text-lg">
+                {title}
+              </h3>
+              <p className="text-sm text-fg-muted">{description}</p>
+            </div>
+          </Link>
+        </li>
+      ))}
     </ul>
   );
 }
