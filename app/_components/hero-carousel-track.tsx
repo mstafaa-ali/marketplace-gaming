@@ -12,9 +12,9 @@ import { cn } from "@/lib/utils/cn";
 const AUTOPLAY_INTERVAL_MS = 5000;
 
 const heroImages = [
-  "/image/genshin-2.jpeg",
-  "/image/hero-1.png",
-  "/image/hero-2.png",
+  "/image/hero/HERO Banner (2).png",
+  "/image/hero/hero-1.png",
+  "/image/hero/hero-2.png",
 ];
 
 export function HeroCarouselTrack() {
@@ -70,7 +70,7 @@ export function HeroCarouselTrack() {
   );
 
   return (
-    <section className="relative isolate h-[50vh] w-full overflow-hidden">
+    <section className="relative isolate h-[60vh] w-full overflow-hidden sm:h-[50vh]">
       {/* Background image carousel */}
       <div ref={emblaRef} className="absolute inset-0 overflow-hidden">
         <div className="flex h-full touch-pan-y">
@@ -96,8 +96,8 @@ export function HeroCarouselTrack() {
       <div className="absolute inset-0 bg-black/50" />
 
       {/* Static content */}
-      <div className="relative z-10 left-80 flex h-full w-1/2 flex-col items-start justify-center gap-6 px-4 text-left">
-        <h1 className="font-display text-3xl font-bold leading-tight tracking-tight text-white md:text-5xl lg:text-6xl">
+      <div className="relative z-10 mx-auto flex h-full w-full max-w-7xl flex-col items-start justify-center gap-4 px-6 text-left sm:gap-6 sm:px-12 md:px-16 lg:px-20">
+        <h1 className="font-display max-w-2xl text-2xl font-bold leading-tight tracking-tight text-white sm:text-3xl md:text-5xl lg:text-6xl">
           Top up game, voucher, dan akun
           <span className="bg-linear-to-r from-violet-300 via-purple-400 to-violet-400 bg-clip-text text-transparent">
             {" "}
