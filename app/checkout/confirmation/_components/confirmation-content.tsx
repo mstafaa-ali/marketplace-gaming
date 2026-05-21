@@ -15,7 +15,7 @@ import {
 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { useHydrated } from "@/hooks/use-hydrated";
@@ -24,14 +24,45 @@ import { formatIDR } from "@/lib/utils/format";
 import { cn } from "@/lib/utils/cn";
 import type { OrderResult } from "@/lib/types/checkout";
 
+/** REQ-4.10 — Key `sessionStorage` untuk fallback `OrderResult`. */
+const PENDING_ORDER_KEY = "gm-pending-order";
+
+/**
+ * Type guard ringan untuk hasil `JSON.parse` dari `sessionStorage` —
+ * memastikan minimal field yang dipakai render (`orderId`, `summary`,
+ * `paymentInstructions`, `estimatedDelivery`) bertipe sesuai kontrak.
+ * Dipakai pada jalur fallback REQ-4.10 supaya tidak melempar di runtime.
+ */
+function isOrderResultLike(value: unknown): value is OrderResult {
+  if (!value || typeof value !== "object") return false;
+  const v = value as Record<string, unknown>;
+  return (
+    typeof v.orderId === "string" &&
+    typeof v.orderDate === "string" &&
+    typeof v.estimatedDelivery === "string" &&
+    Array.isArray(v.paymentInstructions) &&
+    typeof v.summary === "object" &&
+    v.summary !== null
+  );
+}
+
 /**
  * Order confirmation content with celebratory UI.
- * Reads `orderResult` from the checkout store, snapshots it locally,
- * then resets the store. Redirects to /products if no order data exists.
+ *
+ * Sumber data `OrderResult` (urutan prioritas):
+ *   1. `checkout-store` (Zustand) — jalur normal.
+ *   2. **REQ-4.10 fallback** — saat query `?fallback=session` dipakai
+ *      (artinya `setOrderResult` di `checkout-form.tsx` melempar dan
+ *      data disimpan ke `sessionStorage` key `gm-pending-order`),
+ *      baca dari `sessionStorage` setelah hidrasi lalu hapus key-nya
+ *      supaya tidak ter-replay saat refresh.
+ *   3. Tidak ada data → redirect ke `/products`.
  */
 export function ConfirmationContent() {
   const router = useRouter();
   const hydrated = useHydrated();
+  const searchParams = useSearchParams();
+  const isFallback = searchParams.get("fallback") === "session";
   const orderResult = useCheckoutStore((s) => s.orderResult);
   const reset = useCheckoutStore((s) => s.reset);
 
@@ -43,18 +74,50 @@ export function ConfirmationContent() {
     setSnapshot(orderResult);
   }
 
-  // Clear checkout draft after snapshot captured.
+  // REQ-4.10 — Jalur fallback `sessionStorage`. Hanya membaca + parse di
+  // fase render (idempoten, aman dipanggil ulang oleh StrictMode); operasi
+  // destruktif `removeItem` ditunda ke `useEffect` di bawah supaya hanya
+  // berjalan satu kali setelah commit dan tidak menghapus key dua kali
+  // saat StrictMode me-render ganda.
+  if (hydrated && isFallback && !snapshot && !orderResult) {
+    try {
+      const raw = sessionStorage.getItem(PENDING_ORDER_KEY);
+      if (raw) {
+        const parsed: unknown = JSON.parse(raw);
+        if (isOrderResultLike(parsed)) {
+          setSnapshot(parsed);
+        }
+      }
+    } catch (err) {
+      // Mode privat / quota / JSON rusak — diamkan; redirect berikutnya
+      // akan menangani.
+      console.error(
+        "[confirmation] gagal membaca fallback sessionStorage",
+        err,
+      );
+    }
+  }
+
+  // Setelah snapshot ter-capture: reset checkout draft + (REQ-4.10) hapus
+  // key sessionStorage supaya tidak ter-replay pada refresh.
   useEffect(() => {
-    if (snapshot) {
-      reset();
+    if (!snapshot) return;
+    reset();
+    try {
+      sessionStorage.removeItem(PENDING_ORDER_KEY);
+    } catch {
+      // Worst-case: key tidak terhapus — risikonya hanya replay saat
+      // refresh; tidak menghentikan render konfirmasi.
     }
   }, [snapshot, reset]);
 
-  // Redirect if no order data.
+  // Redirect bila tidak ada data sama sekali. Pada jalur fallback dengan
+  // `sessionStorage` valid, `snapshot` akan terisi sebelum efek ini
+  // berjalan sehingga redirect tidak ter-trigger.
   useEffect(() => {
-    if (hydrated && !orderResult && !snapshot) {
-      router.replace("/products");
-    }
+    if (!hydrated) return;
+    if (orderResult || snapshot) return;
+    router.replace("/products");
   }, [hydrated, orderResult, snapshot, router]);
 
   if (!snapshot) {

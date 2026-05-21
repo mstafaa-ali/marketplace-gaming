@@ -8,6 +8,13 @@ interface ProductPaginationProps {
   query: ProductQuery;
   page: number;
   totalPages: number;
+  /**
+   * Route dasar untuk pagination — default `"/products"`. Diisi route turunan
+   * (mis. `/products/account/{gameSlug}`, `/products/voucher/{platformSlug}`)
+   * supaya link halaman tetap berada di route yang sama tanpa lompat balik
+   * ke listing global.
+   */
+  basePath?: string;
   className?: string;
 }
 
@@ -46,16 +53,19 @@ export function ProductPagination({
   query,
   page,
   totalPages,
+  basePath = "/products",
   className,
 }: ProductPaginationProps) {
   if (totalPages <= 1) return null;
 
   const window = buildPageWindow(page, totalPages);
   const prevHref =
-    page > 1 ? buildProductsHref(query, { page: page - 1 }) : undefined;
+    page > 1
+      ? buildProductsHref(query, { page: page - 1 }, basePath)
+      : undefined;
   const nextHref =
     page < totalPages
-      ? buildProductsHref(query, { page: page + 1 })
+      ? buildProductsHref(query, { page: page + 1 }, basePath)
       : undefined;
 
   return (
@@ -88,7 +98,7 @@ export function ProductPagination({
           ) : (
             <li key={p}>
               <PaginationLink
-                href={buildProductsHref(query, { page: p })}
+                href={buildProductsHref(query, { page: p }, basePath)}
                 active={p === page}
                 ariaLabel={`Halaman ${p}`}
               >

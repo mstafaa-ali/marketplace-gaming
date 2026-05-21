@@ -1,38 +1,56 @@
-import { DEFAULT_PER_PAGE } from "@/lib/constants/products";
-
 /**
- * Listing skeleton. Mirrors the final layout (header, toolbar, grid) so the
- * page swap doesn't shift content. Rendered automatically by the App Router
- * during navigation transitions.
+ * Skeleton untuk `/products` — meniru tata letak `Category_Chooser`
+ * (REQ-9.1).
+ *
+ * Sejak migrasi listing flat ke route turunan per kategori, halaman
+ * `/products` berubah peran menjadi chooser 3 kategori (Akun · Top Up ·
+ * Voucher). Skeleton ini mencerminkan layout final `ChooserView` di
+ * `app/products/page.tsx` supaya transisi Loading → Loaded tidak
+ * menggeser konten:
+ *
+ *   container-page → header (eyebrow + h1 + subtitle) → grid 3 kartu
+ *
+ * Grid mengikuti `<CategoryChooser />` persis: `grid-cols-1` di mobile
+ * dan `sm:grid-cols-3` di ≥`sm`, dengan `gap-4` / `sm:gap-6` mengikuti
+ * rhythm landing existing. Tiap kartu skeleton mencerminkan struktur
+ * icon-led `Category_Chooser`: panel gradient `aspect-4/3` di atas
+ * (tempat ikon Lucide pada UI final) lalu dua baris teks di body
+ * (judul + deskripsi singkat).
+ *
+ * Pola `animate-pulse` + `bg-bg-overlay` konsisten dengan skeleton
+ * route lain (`/products/account/loading.tsx`, `/products/voucher/loading.tsx`).
+ *
+ * Catatan: halaman ini juga melayani mode pencarian global (`?q=` di
+ * URL — REQ-6.6 / REQ-12.2) dengan tata letak yang berbeda
+ * (toolbar + grid produk). Karena `loading.tsx` di-share kedua mode,
+ * skeleton ini akan tampak sedikit "off" pada loading mode pencarian.
+ * Trade-off ini sengaja diterima — task 12.4 secara eksplisit meminta
+ * skeleton chooser, dan mode chooser adalah varian default.
+ *
+ * Server Component murni (tanpa `"use client"`) — tidak ada state browser.
  */
-export default function ProductListingLoading() {
+export default function ProductsLoading() {
   return (
     <div
       className="container-page py-8 sm:py-10"
       aria-busy="true"
       aria-live="polite"
     >
-      <div className="space-y-3">
+      {/* Header skeleton: eyebrow + h1 + subtitle (mirror `ChooserView`). */}
+      <div className="mb-6 space-y-2 sm:mb-8">
         <div className="h-3 w-24 animate-pulse rounded bg-bg-overlay" />
-        <div className="h-9 w-72 animate-pulse rounded-md bg-bg-overlay sm:h-10" />
+        <div className="h-9 w-64 animate-pulse rounded-md bg-bg-overlay sm:h-10 sm:w-80" />
         <div className="h-4 w-full max-w-xl animate-pulse rounded bg-bg-overlay" />
       </div>
 
-      <div className="mt-6 flex flex-col gap-3 rounded-xl border border-border bg-bg-elevated p-3 sm:mt-8 sm:flex-row sm:items-center sm:gap-4 sm:p-4">
-        <div className="h-10 w-full animate-pulse rounded-md bg-bg-overlay sm:max-w-md sm:flex-1" />
-        <div className="flex items-center justify-between gap-3 sm:ml-auto">
-          <div className="h-4 w-28 animate-pulse rounded bg-bg-overlay" />
-          <div className="h-10 w-36 animate-pulse rounded-md bg-bg-overlay" />
-        </div>
-      </div>
-
+      {/* Grid skeleton: 3 kartu, mengikuti class `Category_Chooser` persis. */}
       <ul
         role="list"
-        className="mt-6 grid grid-cols-1 gap-4 sm:mt-8 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 lg:gap-6"
+        className="grid grid-cols-1 gap-4 sm:grid-cols-3 sm:gap-6"
       >
-        {Array.from({ length: DEFAULT_PER_PAGE }).map((_, idx) => (
+        {Array.from({ length: 3 }).map((_, idx) => (
           <li key={idx}>
-            <ProductCardSkeleton />
+            <CategoryCardSkeleton />
           </li>
         ))}
       </ul>
@@ -40,23 +58,19 @@ export default function ProductListingLoading() {
   );
 }
 
-function ProductCardSkeleton() {
+/**
+ * Mirror struktur kartu `Category_Chooser`: panel `aspect-4/3` di atas
+ * (placeholder gradient/ikon) + body 2 baris (judul + deskripsi). Border &
+ * background card mengikuti `Category_Chooser` agar pergeseran konten
+ * saat skeleton di-swap dengan kartu asli seminimal mungkin.
+ */
+function CategoryCardSkeleton() {
   return (
-    <div className="flex h-full flex-col overflow-hidden rounded-xl border border-border bg-bg-elevated">
+    <div className="block h-full overflow-hidden rounded-xl border border-border bg-bg-elevated">
       <div className="aspect-4/3 w-full animate-pulse bg-bg-overlay" />
-      <div className="flex flex-1 flex-col gap-3 p-4">
-        <div className="space-y-2">
-          <div className="h-4 w-4/5 animate-pulse rounded bg-bg-overlay" />
-          <div className="h-3 w-2/3 animate-pulse rounded bg-bg-overlay" />
-        </div>
-        <div className="flex gap-1.5">
-          <div className="h-5 w-16 animate-pulse rounded-full bg-bg-overlay" />
-          <div className="h-5 w-20 animate-pulse rounded-full bg-bg-overlay" />
-        </div>
-        <div className="mt-auto flex items-center justify-between gap-3 pt-2">
-          <div className="h-5 w-24 animate-pulse rounded bg-bg-overlay" />
-          <div className="size-8 animate-pulse rounded-full bg-bg-overlay" />
-        </div>
+      <div className="space-y-2 p-4 sm:p-5">
+        <div className="h-5 w-2/5 animate-pulse rounded bg-bg-overlay" />
+        <div className="h-3.5 w-4/5 animate-pulse rounded bg-bg-overlay" />
       </div>
     </div>
   );

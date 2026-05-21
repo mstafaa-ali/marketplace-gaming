@@ -1,4 +1,5 @@
-import { Gamepad2, UserRound } from "lucide-react";
+import { UserRound } from "lucide-react";
+import Image from "next/image";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { CartButton } from "@/components/layout/cart-button";
@@ -22,13 +23,18 @@ export function SiteHeader() {
         <Link
           href="/"
           className="flex items-center gap-2 text-fg transition-opacity hover:opacity-90"
-          aria-label="GameVault — beranda"
+          aria-label="Johen — beranda"
         >
-          <span className="grid size-9 place-items-center rounded-md bg-primary text-white shadow-glow">
-            <Gamepad2 className="size-5" aria-hidden />
-          </span>
+          <Image
+            src="/image/johen-logo.png"
+            alt="Johen logo"
+            width={44}
+            height={44}
+            className="size-11 object-contain"
+            priority
+          />
           <span className="hidden text-lg font-semibold tracking-tight sm:inline">
-            GameVault
+            Johen
           </span>
         </Link>
 

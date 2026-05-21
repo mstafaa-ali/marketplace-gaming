@@ -10,6 +10,12 @@ import { buildProductsHref } from "@/lib/utils/product-query";
 
 interface ProductSortSelectProps {
   query: ProductQuery;
+  /**
+   * Route dasar untuk navigasi sort — default `"/products"`. Diisi route
+   * turunan (`/products/account/{gameSlug}`, `/products/voucher/{platformSlug}`)
+   * supaya pemilihan sort tidak lompat balik ke listing global.
+   */
+  basePath?: string;
   className?: string;
 }
 
@@ -20,6 +26,7 @@ interface ProductSortSelectProps {
  */
 export function ProductSortSelect({
   query,
+  basePath = "/products",
   className,
 }: ProductSortSelectProps) {
   const router = useRouter();
@@ -29,7 +36,11 @@ export function ProductSortSelect({
   function onChange(event: React.ChangeEvent<HTMLSelectElement>) {
     const next = event.target.value as SortValue;
     if (next === query.sort) return;
-    const href = buildProductsHref(query, { sort: next, resetPage: true });
+    const href = buildProductsHref(
+      query,
+      { sort: next, resetPage: true },
+      basePath,
+    );
     startTransition(() => {
       router.push(href, { scroll: false });
     });

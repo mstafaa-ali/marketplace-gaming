@@ -1,6 +1,6 @@
 # Styling Guideline — Digital Gaming Marketplace
 
-Design system untuk Digital Gaming Marketplace. Identitas visual: **gaming, modern, premium, dark-first, dengan ungu sebagai warna utama**. Stack styling: **Tailwind CSS v4 + shadcn/ui + Radix primitives + Lucide React**.
+Design system untuk Digital Gaming Marketplace. Identitas visual: **gaming, modern, premium, dark-first, dengan biru-ungu (cyan-purple) sebagai warna utama**. Stack styling: **Tailwind CSS v4 + shadcn/ui + Radix primitives + Lucide React**.
 
 > Stack di project ini sudah Tailwind v4 (`@tailwindcss/postcss`). **Tidak ada** `tailwind.config.js`. Token didefinisikan langsung di `app/globals.css` melalui `@theme`. Jangan buat `tailwind.config.js` kecuali benar-benar diperlukan.
 
@@ -12,47 +12,56 @@ Design system untuk Digital Gaming Marketplace. Identitas visual: **gaming, mode
 | --------------- | -------------------------------------------------------------------------------------------- |
 | **Energetic**   | Mengangkat vibe gaming yang dinamis, ada gradient & glow halus pada CTA dan hero.            |
 | **Trustworthy** | Tipografi jelas, kontras tinggi, status keamanan ("100% Anti-Minus") menonjol tanpa berisik. |
-| **Premium**     | Spasi longgar, ornamentasi minimal, surface gelap dengan aksen ungu neon.                    |
+| **Premium**     | Spasi longgar, ornamentasi minimal, surface gelap dengan aksen cyan-purple neon.             |
 | **Accessible**  | Semua warna dipasangkan dengan kontras AA minimal. Focus ring jelas.                         |
 
-Mood reference: cyber-purple, neon arcade, neo-tokyo lite. Hindari kesan "kid gaming" yang terlalu kartun.
+Mood reference: cyber-cyan, neon arcade, neo-tokyo lite. Hindari kesan "kid gaming" yang terlalu kartun.
 
 ---
 
 ## 2. Color System
 
-### 2.1 Brand Palette — Royal Violet
+### 2.1 Brand Palette — Cyan-Purple (Biru-Ungu)
 
-Skala 50–950 untuk warna utama. Nilai sudah dicek kontrasnya pada surface gelap default.
+Skala 50–950 untuk warna utama (cyan). Nilai sudah dicek kontrasnya pada surface gelap default.
 
 | Token        | HEX       | Penggunaan                                                 |
 | ------------ | --------- | ---------------------------------------------------------- |
-| `violet-50`  | `#F4F1FF` | Highlight teks pada surface gelap, hover background terang |
-| `violet-100` | `#E5DCFF` | Soft chip background                                       |
-| `violet-200` | `#CDB8FF` | Border subtle, badge soft                                  |
-| `violet-300` | `#B093FF` | Secondary accent, link hover                               |
-| `violet-400` | `#9269FF` | Aksen sekunder, ikon aktif                                 |
-| `violet-500` | `#7C3AED` | **Primary brand color** — CTA, active state                |
-| `violet-600` | `#6B27D9` | CTA hover/pressed                                          |
-| `violet-700` | `#561FB0` | CTA pressed, ring offset                                   |
-| `violet-800` | `#3F1689` | Surface elevated kontras                                   |
-| `violet-900` | `#2A0E5C` | Surface deep, hero gradient stop                           |
-| `violet-950` | `#170733` | Background utama (alternatif), gradient deep               |
+| `violet-50`  | `#F0F9FF` | Highlight teks pada surface gelap, hover background terang |
+| `violet-100` | `#D9F2FF` | Soft chip background                                       |
+| `violet-200` | `#A8E4FF` | Border subtle, badge soft                                  |
+| `violet-300` | `#5FD4FF` | Secondary accent, link hover                               |
+| `violet-400` | `#22C5E0` | Aksen sekunder, ikon aktif                                 |
+| `violet-500` | `#06B6D4` | **Primary brand color** — CTA, active state                |
+| `violet-600` | `#0891B2` | CTA hover/pressed                                          |
+| `violet-700` | `#0E7490` | CTA pressed, ring offset                                   |
+| `violet-800` | `#155E75` | Surface elevated kontras                                   |
+| `violet-900` | `#164E63` | Surface deep, hero gradient stop                           |
+| `violet-950` | `#0C2D3A` | Background utama (alternatif), gradient deep               |
 
-### 2.2 Neutral — Slate Cosmos
+Skala purple (secondary brand):
+
+| Token        | HEX       | Penggunaan                     |
+| ------------ | --------- | ------------------------------ |
+| `purple-500` | `#A855F7` | Secondary brand, gradient stop |
+| `purple-600` | `#9333EA` | Secondary hover                |
+| `purple-700` | `#7E22CE` | Secondary pressed              |
+| `purple-800` | `#6B21A8` | Accent surface                 |
+
+### 2.2 Neutral — Deep Ocean
 
 Surface dan teks utama.
 
 | Token           | HEX       | Penggunaan                           |
 | --------------- | --------- | ------------------------------------ |
-| `bg`            | `#0B0717` | Background utama (dark mode default) |
-| `bg-elevated`   | `#120B26` | Card, sheet, header                  |
-| `bg-overlay`    | `#1A1235` | Modal, dropdown, popover             |
-| `border`        | `#251A45` | Border default                       |
-| `border-strong` | `#3B2A6B` | Border emphasis, divider             |
-| `fg`            | `#F5F1FF` | Teks primer                          |
-| `fg-muted`      | `#B7AAD9` | Teks sekunder                        |
-| `fg-subtle`     | `#7E72A6` | Teks tertiary, placeholder           |
+| `bg`            | `#070B14` | Background utama (dark mode default) |
+| `bg-elevated`   | `#0C1222` | Card, sheet, header                  |
+| `bg-overlay`    | `#111A33` | Modal, dropdown, popover             |
+| `border`        | `#1A2744` | Border default                       |
+| `border-strong` | `#264060` | Border emphasis, divider             |
+| `fg`            | `#F0F8FF` | Teks primer                          |
+| `fg-muted`      | `#A8C4E0` | Teks sekunder                        |
+| `fg-subtle`     | `#6B8AAD` | Teks tertiary, placeholder           |
 
 ### 2.3 Accent — Plasma
 
@@ -60,8 +69,8 @@ Untuk highlight CTA sekunder, badge promo, glow.
 
 | Token          | HEX       | Penggunaan                          |
 | -------------- | --------- | ----------------------------------- |
-| `accent-pink`  | `#FF4FD8` | Badge flash sale, glow              |
-| `accent-cyan`  | `#22D3EE` | Highlight info, link sekunder       |
+| `accent-pink`  | `#D946EF` | Badge flash sale, glow              |
+| `accent-cyan`  | `#00E5FF` | Highlight info, link sekunder       |
 | `accent-amber` | `#F5B544` | Rating bintang, badge "Best Seller" |
 
 ### 2.4 Semantic
@@ -79,10 +88,10 @@ Untuk highlight CTA sekunder, badge promo, glow.
 
 Prioritas saat ini adalah **dark-first**. Light mode boleh ditambahkan setelah dark mode stabil. Mapping yang disarankan:
 
-- `bg` → `#F8F5FF`, `bg-elevated` → `#FFFFFF`, `bg-overlay` → `#FFFFFF`
-- `fg` → `#1B1140`, `fg-muted` → `#4D3D7A`, `fg-subtle` → `#7E72A6`
-- `border` → `#E2D9FA`, `border-strong` → `#C9B8F2`
-- Brand violet tetap, tapi `--color-primary` ke `violet-600` untuk kontras yang cukup pada surface terang.
+- `bg` → `#F4FAFF`, `bg-elevated` → `#FFFFFF`, `bg-overlay` → `#FFFFFF`
+- `fg` → `#0C1A2E`, `fg-muted` → `#3D5A7A`, `fg-subtle` → `#6B8AAD`
+- `border` → `#D4E8F7`, `border-strong` → `#A8D4F0`
+- Brand cyan tetap, tapi `--color-primary` ke `violet-600` untuk kontras yang cukup pada surface terang.
 
 ---
 
@@ -95,18 +104,31 @@ Tulis langsung di `app/globals.css`. Ini menggantikan `tailwind.config.js`.
 @import "tailwindcss";
 
 @theme inline {
-  /* Brand */
-  --color-violet-50: #f4f1ff;
-  --color-violet-100: #e5dcff;
-  --color-violet-200: #cdb8ff;
-  --color-violet-300: #b093ff;
-  --color-violet-400: #9269ff;
-  --color-violet-500: #7c3aed;
-  --color-violet-600: #6b27d9;
-  --color-violet-700: #561fb0;
-  --color-violet-800: #3f1689;
-  --color-violet-900: #2a0e5c;
-  --color-violet-950: #170733;
+  /* Brand — Cyan (primary) */
+  --color-violet-50: #f0f9ff;
+  --color-violet-100: #d9f2ff;
+  --color-violet-200: #a8e4ff;
+  --color-violet-300: #5fd4ff;
+  --color-violet-400: #22c5e0;
+  --color-violet-500: #06b6d4;
+  --color-violet-600: #0891b2;
+  --color-violet-700: #0e7490;
+  --color-violet-800: #155e75;
+  --color-violet-900: #164e63;
+  --color-violet-950: #0c2d3a;
+
+  /* Brand — Purple (secondary) */
+  --color-purple-50: #faf5ff;
+  --color-purple-100: #f3e8ff;
+  --color-purple-200: #e9d5ff;
+  --color-purple-300: #d8b4fe;
+  --color-purple-400: #c084fc;
+  --color-purple-500: #a855f7;
+  --color-purple-600: #9333ea;
+  --color-purple-700: #7e22ce;
+  --color-purple-800: #6b21a8;
+  --color-purple-900: #581c87;
+  --color-purple-950: #3b0764;
 
   /* Semantic aliases — pakai utility seperti bg-primary, text-fg, border-border */
   --color-primary: var(--color-violet-500);
@@ -118,18 +140,18 @@ Tulis langsung di `app/globals.css`. Ini menggantikan `tailwind.config.js`.
     transparent
   );
 
-  --color-bg: #0b0717;
-  --color-bg-elevated: #120b26;
-  --color-bg-overlay: #1a1235;
-  --color-border: #251a45;
-  --color-border-strong: #3b2a6b;
+  --color-bg: #070b14;
+  --color-bg-elevated: #0c1222;
+  --color-bg-overlay: #111a33;
+  --color-border: #1a2744;
+  --color-border-strong: #264060;
 
-  --color-fg: #f5f1ff;
-  --color-fg-muted: #b7aad9;
-  --color-fg-subtle: #7e72a6;
+  --color-fg: #f0f8ff;
+  --color-fg-muted: #a8c4e0;
+  --color-fg-subtle: #6b8aad;
 
-  --color-accent-pink: #ff4fd8;
-  --color-accent-cyan: #22d3ee;
+  --color-accent-pink: #d946ef;
+  --color-accent-cyan: #00e5ff;
   --color-accent-amber: #f5b544;
 
   --color-success: #10b981;
@@ -350,6 +372,48 @@ Layout: `inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-
 - Background `bg-bg-overlay` + `animate-pulse`.
 - Untuk shimmer halus, opsional pakai gradient kustom.
 
+### 6.9 Game Card & Platform Card
+
+Card entitas yang dipakai di `Category_Landing_Page` Akun, Topup, dan Voucher (lihat `feature-guideline.md` §5). Keduanya berbagi anatomi yang sama; perbedaannya hanya pada media (cover image vs ikon-led).
+
+**Struktur dasar (kontrak wajib):**
+
+- **Single `<Link>` (next/link)** membungkus seluruh area card. Tidak ada link nested di dalamnya — anatomi card harus tetap satu target klik agar pembaca layar membaca satu landmark per item.
+- **aria-label deskriptif** di `<Link>`, format: `"Lihat {count} {kategori} untuk {name}"`. Contoh: `"Lihat 12 akun untuk Mobile Legends"`, `"Lihat 5 voucher untuk Steam"`. Jangan andalkan teks visual saja.
+- **Hit area minimum 44×44px** pada mobile. Card grid sudah jauh di atas threshold ini, namun pastikan tidak ada `padding` yang menyusutkan target di breakpoint kecil.
+- **Focus ring** mengikuti rule global `:focus-visible` di `app/globals.css` (`outline: 2px solid var(--color-violet-400); outline-offset: 2px;`). Tidak perlu re-deklarasi per komponen — cukup pastikan `<Link>` adalah elemen fokusable utama dan tidak ada `outline-none` yang menimpa.
+- **Kontras teks vs background** memenuhi WCAG AA (≥ 4.5:1). Title pakai `text-fg`, count pakai `text-fg-muted` atau `text-fg-subtle` — keduanya sudah dicek terhadap `bg-bg-elevated` (lihat §2.2).
+- **Hover lift**: card terangkat halus + glow ungu, mengikuti pola §6.3 (Card).
+
+**Container utility (umum untuk Game_Card & Platform_Card):**
+
+```
+group relative block overflow-hidden rounded-xl bg-bg-elevated border border-border
+transition-all duration-(--duration-base) ease-snappy
+hover:-translate-y-0.5 hover:border-violet-500/60 hover:shadow-glow
+focus-visible:outline-2 focus-visible:outline-violet-400 focus-visible:outline-offset-2
+```
+
+> Catatan Tailwind v4: gunakan `duration-(--duration-base)` dan `ease-snappy` (token `--ease-snappy` ter-register lewat `@theme`), bukan bracket syntax `[var(--…)]` lama.
+
+#### Game_Card (akun & topup)
+
+- **Media**: cover game via `next/image` dengan `fill`, di dalam wrapper `relative aspect-4/3 overflow-hidden` (atau `aspect-square` jika cover bersifat ikonik). `object-cover` agar memenuhi frame.
+- **Overlay scrim** opsional di bawah cover untuk menjaga kontras count badge: `bg-linear-to-t from-bg/80 to-transparent`.
+- **Body** padding `p-4`:
+  - Title `text-base font-semibold line-clamp-1 text-fg`.
+  - Count `text-xs text-fg-muted tabular-nums` — contoh `"12 akun"`, `"8 paket topup"`.
+
+#### Platform_Card (voucher)
+
+- **Media**: ikon Lucide 32–48px (mis. `Gamepad2`, `Smartphone`, `Store`) di tengah panel `aspect-square` atau `aspect-4/3` dengan gradient accent dari `Platform.accent` (`bg-linear-to-br from-violet-500 to-accent-pink`, dst.).
+- Ikon pakai `text-white` di atas gradient; `strokeWidth={1.75}` mengikuti §7. Hindari teks di dalam panel media — biarkan grafis bersih.
+- **Body** identik dengan `Game_Card`:
+  - Title `text-base font-semibold text-fg` (nama platform: "Steam", "Google Play").
+  - Count `text-xs text-fg-muted tabular-nums` — contoh `"24 voucher"`.
+
+> Catatan migrasi: `app/_components/popular-game-grid.tsx` sudah mengandung pola visual yang mirip. `Game_Card` baru di `app/products/_components/game-card.tsx` boleh meminjam tata letaknya — yang penting kontrak di atas (single Link, aria-label, fokus ring, hit area) terpenuhi.
+
 ---
 
 ## 7. Iconography
@@ -496,7 +560,70 @@ Saat init shadcn (`npx shadcn@latest init`), pilih:
 </article>
 ```
 
-### 13.3 CTA Primary
+### 13.3 Game Card (struktur)
+
+Lihat resep di §6.9. `href` ditentukan halaman induk: `/products/account/{slug}` untuk Akun atau `/checkout?category=topup&game={slug}` untuk Topup.
+
+```tsx
+import Image from "next/image";
+import Link from "next/link";
+
+<Link
+  href={href}
+  aria-label={`Lihat ${countLabel} untuk ${game.name}`}
+  className="group relative block overflow-hidden rounded-xl bg-bg-elevated border border-border transition-all duration-(--duration-base) ease-snappy hover:-translate-y-0.5 hover:border-violet-500/60 hover:shadow-glow"
+>
+  <div className="relative aspect-4/3 overflow-hidden">
+    <Image
+      src={game.cover}
+      alt=""
+      fill
+      sizes="(min-width: 1024px) 25vw, (min-width: 640px) 33vw, 50vw"
+      className="object-cover transition-transform duration-(--duration-base) group-hover:scale-[1.02]"
+    />
+    <div className="absolute inset-0 bg-linear-to-t from-bg/80 to-transparent" />
+  </div>
+  <div className="p-4 space-y-1">
+    <h3 className="text-base font-semibold text-fg line-clamp-1">
+      {game.name}
+    </h3>
+    <p className="text-xs text-fg-muted tabular-nums">{countLabel}</p>
+  </div>
+</Link>;
+```
+
+### 13.4 Platform Card (struktur)
+
+Lihat resep di §6.9. Ikon-led dengan gradient `Platform.accent`.
+
+```tsx
+import Link from "next/link";
+import { Gamepad2 } from "lucide-react";
+
+<Link
+  href={`/products/voucher/${platform.slug}`}
+  aria-label={`Lihat ${countLabel} untuk ${platform.name}`}
+  className="group relative block overflow-hidden rounded-xl bg-bg-elevated border border-border transition-all duration-(--duration-base) ease-snappy hover:-translate-y-0.5 hover:border-violet-500/60 hover:shadow-glow"
+>
+  <div
+    className={`relative aspect-square flex items-center justify-center bg-linear-to-br ${platform.accent}`}
+  >
+    <Gamepad2
+      className="size-10 text-white"
+      strokeWidth={1.75}
+      aria-hidden="true"
+    />
+  </div>
+  <div className="p-4 space-y-1">
+    <h3 className="text-base font-semibold text-fg line-clamp-1">
+      {platform.name}
+    </h3>
+    <p className="text-xs text-fg-muted tabular-nums">{countLabel}</p>
+  </div>
+</Link>;
+```
+
+### 13.5 CTA Primary
 
 ```
 <button class="inline-flex items-center justify-center gap-2 h-11 px-5 rounded-md bg-primary text-white font-medium shadow-glow transition-colors hover:bg-primary-hover active:bg-primary-active focus-visible:outline-2 focus-visible:outline-violet-400 focus-visible:outline-offset-2 disabled:opacity-50 disabled:pointer-events-none">

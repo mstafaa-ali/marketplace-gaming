@@ -2,38 +2,53 @@
 
 import { Loader2, ShieldCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { useCartStore } from "@/stores/cart-store";
 import { useCheckoutStore } from "@/stores/checkout-store";
 import { calculateOrderSummary } from "@/lib/utils/checkout";
 import { formatIDR } from "@/lib/utils/format";
+import type { OrderItem } from "@/lib/types/checkout";
 import { CartItemRow } from "./cart-item-row";
 
 export interface OrderSummaryCardProps {
+  /**
+   * Daftar item baris yang ditampilkan di ringkasan. Disuplai oleh
+   * pemanggil agar `Order_Summary_Card` agnostic terhadap sumber data
+   * (`cart-store` di mode cart, atau `Topup_Denomination` terpilih di
+   * mode topup). REQ-4.9: di mode topup, `cart-store` TIDAK boleh
+   * dibaca dari komponen ini.
+   */
+  items: OrderItem[];
+  /** Handler tombol "Bayar Sekarang". */
   onSubmit: () => void;
+  /**
+   * Tombol "Bayar Sekarang" dinonaktifkan saat `disabled === true`
+   * ATAU `isProcessing` aktif. Pemanggil bertanggung jawab menggabungkan
+   * sub-kondisi (denominasi terpilih, customer info valid, payment dipilih)
+   * sesuai REQ-4.5.
+   */
   disabled: boolean;
+  /**
+   * Label kosong opsional saat `items.length === 0`. Berguna di alur
+   * Topup ketika denominasi belum dipilih: ringkasan tetap dirender,
+   * namun memberi petunjuk visual.
+   */
+  emptyText?: string;
 }
 
 /**
- * Sticky order summary sidebar showing cart items, totals, and submit button.
+ * Sticky `Order_Summary_Card` sidebar — menampilkan daftar item, subtotal,
+ * diskon voucher, total, serta tombol submit pembayaran.
  */
 export function OrderSummaryCard({
+  items,
   onSubmit,
   disabled,
+  emptyText,
 }: OrderSummaryCardProps) {
-  const items = useCartStore((s) => s.items);
   const voucher = useCheckoutStore((s) => s.voucher);
   const isProcessing = useCheckoutStore((s) => s.isProcessing);
 
-  const orderItems = items.map((item) => ({
-    id: item.id,
-    title: item.title,
-    price: item.price,
-    qty: item.qty,
-    thumbnailUrl: item.thumbnailUrl,
-  }));
-
   const { subtotal, voucherDiscount, total } = calculateOrderSummary(
-    orderItems,
+    items,
     voucher?.valid ? voucher.discountPercent : undefined,
   );
 
@@ -42,12 +57,18 @@ export function OrderSummaryCard({
       <div className="space-y-4 rounded-xl border border-border bg-bg-elevated p-5">
         <h2 className="text-base font-semibold text-fg">Ringkasan Pesanan</h2>
 
-        {/* Item list */}
-        <div className="space-y-3">
-          {items.map((item) => (
-            <CartItemRow key={item.id} item={item} />
-          ))}
-        </div>
+        {/* Item list (atau placeholder saat kosong di mode topup pre-select) */}
+        {items.length > 0 ? (
+          <div className="space-y-3">
+            {items.map((item) => (
+              <CartItemRow key={item.id} item={item} />
+            ))}
+          </div>
+        ) : (
+          <p className="rounded-lg border border-dashed border-border-strong bg-bg-overlay/40 px-3 py-4 text-center text-xs text-fg-muted">
+            {emptyText ?? "Belum ada item dipilih."}
+          </p>
+        )}
 
         {/* Totals */}
         <div className="space-y-2 border-t border-border pt-3">

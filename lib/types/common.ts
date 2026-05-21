@@ -19,8 +19,10 @@ export interface PromoSlide {
   description: string;
   ctaLabel: string;
   ctaHref: string;
-  /** Tailwind gradient classes for the slide background until imagery is ready. */
+  /** Tailwind gradient classes for the slide background overlay. */
   gradient: string;
+  /** Path to the promo banner image. */
+  image: string;
   badge?: string;
 }
 

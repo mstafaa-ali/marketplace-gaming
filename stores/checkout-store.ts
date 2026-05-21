@@ -14,6 +14,13 @@ interface CheckoutState {
   voucher: VoucherResult | null;
   orderResult: OrderResult | null;
   isProcessing: boolean;
+  /**
+   * ID `Topup_Denomination` yang dipilih pengguna di `Topup_Picker`
+   * saat alur Topup aktif (`/checkout?category=topup&game=…`).
+   *
+   * Bernilai `null` selama alur cart biasa atau saat denominasi belum dipilih.
+   */
+  topupSelectedId: string | null;
 
   setCustomer: (info: Partial<CustomerInfo>) => void;
   setPayment: (method: PaymentMethod) => void;
@@ -21,6 +28,11 @@ interface CheckoutState {
   clearVoucher: () => void;
   setProcessing: (v: boolean) => void;
   setOrderResult: (result: OrderResult) => void;
+  /**
+   * Setter untuk `topupSelectedId`. Terima `null` untuk membatalkan pilihan
+   * (mis. saat denominasi yang sebelumnya dipilih sudah tidak tersedia).
+   */
+  setTopupSelectedId: (id: string | null) => void;
   reset: () => void;
 }
 
@@ -30,11 +42,13 @@ const INITIAL_STATE = {
   voucher: null,
   orderResult: null,
   isProcessing: false,
+  topupSelectedId: null,
 } as const;
 
 /**
  * Ephemeral checkout store — NOT persisted.
- * Holds draft customer info, selected payment, voucher state, and order result.
+ * Holds draft customer info, selected payment, voucher state, order result,
+ * and the currently selected Topup_Denomination id during the Topup flow.
  * Cleared on reset or when user navigates away.
  */
 export const useCheckoutStore = create<CheckoutState>()((set) => ({
@@ -52,6 +66,8 @@ export const useCheckoutStore = create<CheckoutState>()((set) => ({
   setProcessing: (v) => set({ isProcessing: v }),
 
   setOrderResult: (result) => set({ orderResult: result }),
+
+  setTopupSelectedId: (id) => set({ topupSelectedId: id }),
 
   reset: () => set({ ...INITIAL_STATE }),
 }));

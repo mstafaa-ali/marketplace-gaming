@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { Suspense } from "react";
 import { ConfirmationContent } from "./_components/confirmation-content";
 
 export const metadata: Metadata = {
@@ -44,7 +45,9 @@ export default function CheckoutConfirmationPage() {
         </ol>
       </nav>
 
-      <ConfirmationContent />
+      <Suspense fallback={null}>
+        <ConfirmationContent />
+      </Suspense>
     </div>
   );
 }

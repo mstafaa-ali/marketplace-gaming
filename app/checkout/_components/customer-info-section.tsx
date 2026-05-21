@@ -5,17 +5,29 @@ import { Input } from "@/components/ui/input";
 import { useCheckoutStore } from "@/stores/checkout-store";
 
 export interface CustomerInfoSectionProps {
-  /** Whether game ID field is required (topup/account categories) */
-  requireGameId: boolean;
-  /** Validation errors keyed by field name */
+  /**
+   * Menentukan apakah field `gameId` dan `gameServer` ditampilkan dan
+   * divalidasi sebagai mandatory.
+   *
+   * - `true` → kedua field dirender dengan label asterisk, error inline,
+   *   serta wiring `aria-invalid` + `aria-describedby`.
+   * - `false` → kedua field disembunyikan (alur cart non-game).
+   *
+   * Tidak ada nilai default; callers wajib memilih secara eksplisit
+   * karena alur topup dan alur cart memiliki semantik berbeda.
+   */
+  requireGameFields: boolean;
+  /** Map error per nama field. Kunci yang relevan: `name`, `email`, `whatsapp`, `gameId`, `gameServer`. */
   errors: Record<string, string>;
 }
 
 /**
- * Customer information form section: name, email, WhatsApp, game ID, server, notes.
+ * Section form data pemesan: nama, email, WhatsApp, ID game, server game,
+ * dan catatan. Field game (`gameId`/`gameServer`) hanya dirender ketika
+ * `requireGameFields` bernilai `true`.
  */
 export function CustomerInfoSection({
-  requireGameId,
+  requireGameFields,
   errors,
 }: CustomerInfoSectionProps) {
   const customer = useCheckoutStore((s) => s.customer);
@@ -104,8 +116,8 @@ export function CustomerInfoSection({
         )}
       </div>
 
-      {/* Game ID — conditional */}
-      {requireGameId && (
+      {/* ID Game — wajib ketika requireGameFields === true */}
+      {requireGameFields && (
         <div className="space-y-1.5">
           <label
             htmlFor="checkout-gameid"
@@ -131,25 +143,34 @@ export function CustomerInfoSection({
         </div>
       )}
 
-      {/* Game Server — optional */}
-      {requireGameId && (
+      {/* Server Game — wajib ketika requireGameFields === true */}
+      {requireGameFields && (
         <div className="space-y-1.5">
           <label
             htmlFor="checkout-server"
             className="text-sm font-medium text-fg-muted"
           >
-            Server Game <span className="text-fg-subtle">(opsional)</span>
+            Server Game <span className="text-danger">*</span>
           </label>
           <Input
             id="checkout-server"
             placeholder="Contoh: Asia, SEA, dll."
             value={customer.gameServer ?? ""}
             onChange={handleChange("gameServer")}
+            aria-invalid={!!errors.gameServer}
+            aria-describedby={
+              errors.gameServer ? "checkout-server-error" : undefined
+            }
           />
+          {errors.gameServer && (
+            <p id="checkout-server-error" className="text-xs text-danger">
+              {errors.gameServer}
+            </p>
+          )}
         </div>
       )}
 
-      {/* Notes — optional */}
+      {/* Catatan — opsional */}
       <div className="space-y-1.5">
         <label
           htmlFor="checkout-notes"

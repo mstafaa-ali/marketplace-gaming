@@ -12,15 +12,33 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
+import type { GameFilterDefinition } from "@/lib/data/game-filters";
 import type { Game } from "@/lib/types/game";
 import type { ProductQuery } from "@/lib/types/product";
 import { cn } from "@/lib/utils/cn";
-import { ProductFilterForm } from "./product-filter-form";
+import {
+  ProductFilterForm,
+  type ProductFilterScope,
+} from "./product-filter-form";
 
 interface ProductFilterDrawerProps {
   query: ProductQuery;
   games: Game[];
   className?: string;
+  /**
+   * Cakupan halaman pemanggil. Diteruskan ke `ProductFilterForm`. Default
+   * `"global"` agar listing flat di `/products` tetap berperilaku sama.
+   */
+  scope?: ProductFilterScope;
+  /**
+   * Path dasar untuk URL Apply/Reset. Default `/products`. Untuk
+   * Game_Detail_Page Akun, pemanggil mengirim `/products/account/{gameSlug}`.
+   */
+  basePath?: string;
+  /**
+   * Definisi filter spesifik game. Diteruskan ke `ProductFilterForm`.
+   */
+  gameFilters?: GameFilterDefinition[];
 }
 
 /**
@@ -34,14 +52,25 @@ export function ProductFilterDrawer({
   query,
   games,
   className,
+  scope = "global",
+  basePath,
+  gameFilters,
 }: ProductFilterDrawerProps) {
   const [open, setOpen] = useState(false);
 
+  const isGameDetail = scope === "game-detail";
+
+  // Pada scope game-detail, `?game=…` ditetapkan oleh URL segment dan tidak
+  // muncul di sidebar — jadi tidak perlu dihitung sebagai filter aktif.
+  const filterTagCount = query.filterTags
+    ? Object.values(query.filterTags).reduce((sum, arr) => sum + arr.length, 0)
+    : 0;
   const activeCount =
-    query.games.length +
-    (query.category ? 1 : 0) +
+    (isGameDetail ? 0 : query.games.length) +
+    (isGameDetail ? 0 : query.category ? 1 : 0) +
     (typeof query.min === "number" ? 1 : 0) +
-    (typeof query.max === "number" ? 1 : 0);
+    (typeof query.max === "number" ? 1 : 0) +
+    filterTagCount;
 
   return (
     <Sheet open={open} onOpenChange={setOpen}>
@@ -71,7 +100,9 @@ export function ProductFilterDrawer({
         <SheetHeader>
           <SheetTitle>Filter produk</SheetTitle>
           <SheetDescription>
-            Pilih kategori, game, dan rentang harga.
+            {isGameDetail
+              ? "Filter akun berdasarkan spesifikasi game."
+              : "Pilih kategori, game, dan rentang harga."}
           </SheetDescription>
         </SheetHeader>
         <SheetBody>
@@ -80,6 +111,9 @@ export function ProductFilterDrawer({
             games={games}
             onCommit={() => setOpen(false)}
             hideTitle
+            scope={scope}
+            basePath={basePath}
+            gameFilters={gameFilters}
           />
         </SheetBody>
       </SheetContent>

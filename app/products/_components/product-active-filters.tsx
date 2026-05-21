@@ -9,6 +9,13 @@ import type { ProductQuery } from "@/lib/types/product";
 
 interface ProductActiveFiltersProps {
   query: ProductQuery;
+  /**
+   * Route dasar untuk membangun href chip "hapus filter" dan link
+   * "Reset semua". Default `"/products"`; route turunan mengirim path-nya
+   * sendiri (mis. `/products/account/{gameSlug}`) supaya navigasi tetap di
+   * dalam halaman yang sama.
+   */
+  basePath?: string;
   className?: string;
 }
 
@@ -29,6 +36,7 @@ interface ActiveChip {
  */
 export function ProductActiveFilters({
   query,
+  basePath = "/products",
   className,
 }: ProductActiveFiltersProps) {
   const chips: ActiveChip[] = [];
@@ -37,7 +45,11 @@ export function ProductActiveFilters({
     chips.push({
       key: "q",
       label: `Pencarian: "${query.q}"`,
-      href: buildProductsHref(query, { q: undefined, resetPage: true }),
+      href: buildProductsHref(
+        query,
+        { q: undefined, resetPage: true },
+        basePath,
+      ),
     });
   }
 
@@ -45,7 +57,11 @@ export function ProductActiveFilters({
     chips.push({
       key: "category",
       label: `Kategori: ${CATEGORY_LABELS[query.category]}`,
-      href: buildProductsHref(query, { category: undefined, resetPage: true }),
+      href: buildProductsHref(
+        query,
+        { category: undefined, resetPage: true },
+        basePath,
+      ),
     });
   }
 
@@ -54,10 +70,14 @@ export function ProductActiveFilters({
     chips.push({
       key: `game:${slug}`,
       label: `Game: ${game?.name ?? slug}`,
-      href: buildProductsHref(query, {
-        games: query.games.filter((g) => g !== slug),
-        resetPage: true,
-      }),
+      href: buildProductsHref(
+        query,
+        {
+          games: query.games.filter((g) => g !== slug),
+          resetPage: true,
+        },
+        basePath,
+      ),
     });
   }
 
@@ -65,14 +85,22 @@ export function ProductActiveFilters({
     chips.push({
       key: "min",
       label: `Min: ${formatIDR(query.min)}`,
-      href: buildProductsHref(query, { min: undefined, resetPage: true }),
+      href: buildProductsHref(
+        query,
+        { min: undefined, resetPage: true },
+        basePath,
+      ),
     });
   }
   if (typeof query.max === "number") {
     chips.push({
       key: "max",
       label: `Max: ${formatIDR(query.max)}`,
-      href: buildProductsHref(query, { max: undefined, resetPage: true }),
+      href: buildProductsHref(
+        query,
+        { max: undefined, resetPage: true },
+        basePath,
+      ),
     });
   }
 
@@ -103,7 +131,7 @@ export function ProductActiveFilters({
         </Link>
       ))}
       <Link
-        href="/products"
+        href={basePath}
         scroll={false}
         className="ml-1 text-xs text-violet-300 underline-offset-4 hover:underline"
       >

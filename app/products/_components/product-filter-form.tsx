@@ -6,10 +6,21 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { CATEGORY_LABELS, CATEGORY_VALUES } from "@/lib/constants/products";
 import { draftToOverride, useFilterDraftStore } from "@/stores/filter-store";
+import type { GameFilterDefinition } from "@/lib/data/game-filters";
 import type { Game } from "@/lib/types/game";
 import type { ProductCategory, ProductQuery } from "@/lib/types/product";
-import { buildProductsHref } from "@/lib/utils/product-query";
+import { buildProductQueryString } from "@/lib/utils/product-query";
 import { cn } from "@/lib/utils/cn";
+
+/**
+ * Cakupan halaman tempat form filter dipakai.
+ *
+ * - `"global"`: dipakai di `/products` listing flat (default, perilaku lama).
+ * - `"game-detail"`: dipakai di `/products/account/{gameSlug}`.
+ *   `gameSlug` sudah dipatok oleh URL segment, jadi multi-select Game
+ *   disembunyikan dan tidak boleh ikut ditulis ke URL params.
+ */
+export type ProductFilterScope = "global" | "game-detail";
 
 interface ProductFilterFormProps {
   query: ProductQuery;
@@ -22,6 +33,24 @@ interface ProductFilterFormProps {
   /** Hide the section title on mobile (the drawer header already shows one). */
   hideTitle?: boolean;
   className?: string;
+  /**
+   * Cakupan tempat form ini dirender. Defaultnya `"global"` agar pemanggil
+   * lama di `/products` tetap berperilaku sama tanpa perubahan call site.
+   */
+  scope?: ProductFilterScope;
+  /**
+   * Path dasar yang dipakai saat membangun URL Apply/Reset. Default
+   * `/products` untuk scope `"global"`. Scope `"game-detail"` wajib
+   * memberikan path lengkap, mis. `/products/account/mobile-legends`,
+   * supaya navigasi tetap berada di Game_Detail_Page.
+   */
+  basePath?: string;
+  /**
+   * Definisi filter spesifik game (rank, skin, character, dll.).
+   * Hanya diisi saat `scope === "game-detail"`. Jika kosong/undefined,
+   * fieldset game filter tidak ditampilkan.
+   */
+  gameFilters?: GameFilterDefinition[];
 }
 
 /**
@@ -33,7 +62,11 @@ interface ProductFilterFormProps {
  *    matches what's currently active.
  * 3. User edits → updates Zustand draft only.
  * 4. "Terapkan" commits the draft to the URL via `router.push`.
- * 5. "Reset" navigates to `/products` without filters.
+ * 5. "Reset" navigates to `basePath` without filters.
+ *
+ * Saat `scope === "game-detail"`, multi-select Game disembunyikan dan field
+ * `games` di draft di-clear setelah hydrate sehingga seleksi dari sesi
+ * `/products` sebelumnya tidak ikut bocor ke URL Game_Detail_Page.
  */
 export function ProductFilterForm({
   query,
@@ -41,27 +74,42 @@ export function ProductFilterForm({
   onCommit,
   hideTitle = false,
   className,
+  scope = "global",
+  basePath = "/products",
+  gameFilters = [],
 }: ProductFilterFormProps) {
   const router = useRouter();
   const formId = useId();
   const [isPending, startTransition] = useTransition();
 
   const draft = useFilterDraftStore();
+  const isGameDetail = scope === "game-detail";
 
   // Sync the draft with the URL whenever the URL changes (back/forward,
   // active-filter chip removal, reset link). Comparing serialized
   // representations avoids redundant resets on every render.
   const querySig = `${query.category ?? ""}|${query.games.join(",")}|${
     query.min ?? ""
-  }|${query.max ?? ""}`;
+  }|${query.max ?? ""}|${JSON.stringify(query.filterTags ?? {})}`;
 
   useEffect(() => {
     draft.hydrateFrom(query);
+    // Pada scope game-detail, `gameSlug` ditetapkan oleh URL segment, jadi
+    // setiap seleksi multi-select Game (baik dari sesi global sebelumnya
+    // maupun dari `?game=…` yang di-paste manual) harus dibuang agar
+    // tidak terbawa ke URL params Game_Detail_Page.
+    if (isGameDetail) {
+      draft.clearGames();
+    }
     // We intentionally depend on the signature, not `draft.hydrateFrom`,
     // because Zustand setters are stable but the ESLint exhaustive-deps rule
     // can't see that statically.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [querySig]);
+  }, [querySig, isGameDetail]);
+
+  function buildHref(qs: string): string {
+    return qs ? `${basePath}?${qs}` : basePath;
+  }
 
   function commit(href: string) {
     startTransition(() => {
@@ -73,12 +121,18 @@ export function ProductFilterForm({
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const override = draftToOverride(draft);
-    commit(buildProductsHref(query, override));
+    // Pada scope game-detail, `games` tidak boleh ikut ditulis ke URL.
+    // `null` membuat `buildProductQueryString` menghapus seluruh entry
+    // `?game=…` (lihat `lib/utils/product-query.ts`).
+    if (isGameDetail) {
+      override.games = null;
+    }
+    commit(buildHref(buildProductQueryString(query, override)));
   }
 
   function handleReset() {
     draft.reset();
-    commit("/products");
+    commit(basePath);
   }
 
   return (
@@ -100,14 +154,34 @@ export function ProductFilterForm({
           </div>
         ) : null}
 
-        <CategoryFieldset value={draft.category} onChange={draft.setCategory} />
+        {/* Kategori & Game hanya ditampilkan di scope global.
+            Di game-detail, keduanya sudah dipatok oleh URL segment. */}
+        {!isGameDetail && (
+          <CategoryFieldset
+            value={draft.category}
+            onChange={draft.setCategory}
+          />
+        )}
 
-        <GameFieldset
-          games={games}
-          selected={draft.games}
-          onToggle={draft.toggleGame}
-          onClear={draft.clearGames}
-        />
+        {!isGameDetail && (
+          <GameFieldset
+            games={games}
+            selected={draft.games}
+            onToggle={draft.toggleGame}
+            onClear={draft.clearGames}
+          />
+        )}
+
+        {/* Filter spesifik game (rank, skin, character, dll.) —
+            hanya muncul di scope game-detail saat definisi tersedia. */}
+        {isGameDetail && gameFilters.length > 0 && (
+          <GameTagFilters
+            filters={gameFilters}
+            filterTags={draft.filterTags}
+            onToggle={draft.toggleFilterTag}
+            onClear={draft.clearFilterTags}
+          />
+        )}
 
         <PriceFieldset
           minInput={draft.minInput}
@@ -330,5 +404,90 @@ function CheckboxRow({ checked, onChange, label, hint }: CheckboxRowProps) {
         <span className="text-xs tabular-nums text-fg-subtle">{hint}</span>
       ) : null}
     </label>
+  );
+}
+
+/**
+ * Game-specific filter fieldsets (rank, skin, character, etc.).
+ * Renders one fieldset per filter definition with chip-style toggles.
+ */
+function GameTagFilters({
+  filters,
+  filterTags,
+  onToggle,
+  onClear,
+}: {
+  filters: GameFilterDefinition[];
+  filterTags: Record<string, string[]>;
+  onToggle: (key: string, value: string, type: "select" | "multi") => void;
+  onClear: () => void;
+}) {
+  const hasActive = Object.keys(filterTags).length > 0;
+
+  return (
+    <div className="space-y-4">
+      <div className="flex items-center justify-between gap-3">
+        <span className="text-xs font-semibold uppercase tracking-wider text-fg-subtle">
+          Filter Game
+        </span>
+        {hasActive && (
+          <button
+            type="button"
+            onClick={onClear}
+            className="text-xs text-violet-300 underline-offset-4 hover:underline"
+          >
+            Bersihkan
+          </button>
+        )}
+      </div>
+      {filters.map((filter) => (
+        <GameTagFieldset
+          key={filter.key}
+          filter={filter}
+          activeValues={filterTags[filter.key] ?? []}
+          onToggle={onToggle}
+        />
+      ))}
+    </div>
+  );
+}
+
+function GameTagFieldset({
+  filter,
+  activeValues,
+  onToggle,
+}: {
+  filter: GameFilterDefinition;
+  activeValues: string[];
+  onToggle: (key: string, value: string, type: "select" | "multi") => void;
+}) {
+  return (
+    <fieldset className="space-y-2">
+      <legend className="text-xs font-medium text-fg-muted">
+        {filter.label}
+      </legend>
+      <div className="flex flex-wrap gap-1.5">
+        {filter.options.map((option) => {
+          const isActive = activeValues.includes(option.value);
+          return (
+            <button
+              key={option.value}
+              type="button"
+              onClick={() => onToggle(filter.key, option.value, filter.type)}
+              className={cn(
+                "rounded-full border px-2.5 py-1 text-xs font-medium transition-colors",
+                "focus-visible:outline-2 focus-visible:outline-violet-400 focus-visible:outline-offset-2",
+                isActive
+                  ? "border-violet-500 bg-violet-500/20 text-violet-200"
+                  : "border-border text-fg-muted hover:border-violet-500/40 hover:bg-violet-500/10 hover:text-fg",
+              )}
+              aria-pressed={isActive}
+            >
+              {option.label}
+            </button>
+          );
+        })}
+      </div>
+    </fieldset>
   );
 }

@@ -14,6 +14,8 @@ export interface FilterDraft {
   /** Raw input strings so the user can clear or partially type a number. */
   minInput: string;
   maxInput: string;
+  /** Game-specific filter tags (rank, skin, character, etc.). */
+  filterTags: Record<string, string[]>;
 }
 
 interface FilterDraftState extends FilterDraft {
@@ -24,6 +26,14 @@ interface FilterDraftState extends FilterDraft {
   setCategory: (category: ProductCategory | undefined) => void;
   setMinInput: (value: string) => void;
   setMaxInput: (value: string) => void;
+  /** Toggle a value within a game-specific filter (e.g. toggle "immortal" in "rank"). */
+  toggleFilterTag: (
+    key: string,
+    value: string,
+    type: "select" | "multi",
+  ) => void;
+  /** Clear all game-specific filter tags. */
+  clearFilterTags: () => void;
   reset: () => void;
 }
 
@@ -32,6 +42,7 @@ const EMPTY_DRAFT: FilterDraft = {
   category: undefined,
   minInput: "",
   maxInput: "",
+  filterTags: {},
 };
 
 function draftFromQuery(query: ProductQuery): FilterDraft {
@@ -40,6 +51,7 @@ function draftFromQuery(query: ProductQuery): FilterDraft {
     category: query.category,
     minInput: typeof query.min === "number" ? String(query.min) : "",
     maxInput: typeof query.max === "number" ? String(query.max) : "",
+    filterTags: query.filterTags ? { ...query.filterTags } : {},
   };
 }
 
@@ -61,6 +73,31 @@ export const useFilterDraftStore = create<FilterDraftState>((set) => ({
   setCategory: (category) => set({ category }),
   setMinInput: (value) => set({ minInput: value }),
   setMaxInput: (value) => set({ maxInput: value }),
+  toggleFilterTag: (key, value, type) =>
+    set((state) => {
+      const current = state.filterTags[key] ?? [];
+      let newValues: string[];
+
+      if (type === "select") {
+        // Select: only one value active at a time; toggle off if already selected
+        newValues = current.includes(value) ? [] : [value];
+      } else {
+        // Multi: toggle the value in the array
+        newValues = current.includes(value)
+          ? current.filter((v) => v !== value)
+          : [...current, value];
+      }
+
+      const newFilterTags = { ...state.filterTags };
+      if (newValues.length > 0) {
+        newFilterTags[key] = newValues;
+      } else {
+        delete newFilterTags[key];
+      }
+
+      return { filterTags: newFilterTags };
+    }),
+  clearFilterTags: () => set({ filterTags: {} }),
   reset: () => set(EMPTY_DRAFT),
 }));
 
@@ -73,6 +110,7 @@ export function draftToOverride(draft: FilterDraft): {
   category: ProductCategory | undefined;
   min: number | undefined;
   max: number | undefined;
+  filterTags: Record<string, string[]> | undefined;
   resetPage: true;
 } {
   const minRaw = draft.minInput.trim();
@@ -80,11 +118,15 @@ export function draftToOverride(draft: FilterDraft): {
   const min = minRaw === "" ? undefined : Number.parseInt(minRaw, 10);
   const max = maxRaw === "" ? undefined : Number.parseInt(maxRaw, 10);
 
+  const filterTags =
+    Object.keys(draft.filterTags).length > 0 ? draft.filterTags : undefined;
+
   return {
     games: draft.games.length > 0 ? draft.games : null,
     category: draft.category,
     min: Number.isFinite(min) ? (min as number) : undefined,
     max: Number.isFinite(max) ? (max as number) : undefined,
+    filterTags,
     resetPage: true,
   };
 }

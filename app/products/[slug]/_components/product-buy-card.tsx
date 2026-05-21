@@ -43,9 +43,13 @@ export function ProductBuyCard({ product }: ProductBuyCardProps) {
       <div className="space-y-5 rounded-xl border border-border bg-bg-elevated p-5">
         {/* Game name + title */}
         <div className="space-y-1.5">
-          <p className="text-xs font-medium uppercase tracking-wider text-fg-subtle">
-            {product.gameName}
-          </p>
+          {/* `gameName` opsional sejak Fase A task 3.3 — voucher tidak
+              terikat ke `Game`, jadi label hanya muncul untuk akun/topup. */}
+          {product.gameName ? (
+            <p className="text-xs font-medium uppercase tracking-wider text-fg-subtle">
+              {product.gameName}
+            </p>
+          ) : null}
           <h1 className="font-display text-lg font-semibold leading-snug tracking-tight sm:text-xl">
             {product.title}
           </h1>

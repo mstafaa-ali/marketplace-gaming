@@ -100,12 +100,19 @@ export default async function ProductDetailPage({
         <ProductBuyCard product={product} />
       </div>
 
-      {/* Related products — streamed independently */}
-      <div className="mt-12 border-t border-border pt-10">
-        <Suspense fallback={<RelatedProductsSkeleton />}>
-          <RelatedProducts gameSlug={product.gameSlug} excludeId={product.id} />
-        </Suspense>
-      </div>
+      {/* Related products — streamed independently. Hanya relevan untuk
+          produk yang terikat ke `Game` (akun/topup). Voucher tidak punya
+          `gameSlug` sehingga section ini di-skip (REQ-5.2 hard-rule). */}
+      {product.gameSlug ? (
+        <div className="mt-12 border-t border-border pt-10">
+          <Suspense fallback={<RelatedProductsSkeleton />}>
+            <RelatedProducts
+              gameSlug={product.gameSlug}
+              excludeId={product.id}
+            />
+          </Suspense>
+        </div>
+      ) : null}
     </div>
   );
 }

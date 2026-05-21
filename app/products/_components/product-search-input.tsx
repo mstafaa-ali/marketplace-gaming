@@ -16,6 +16,12 @@ import { buildProductsHref } from "@/lib/utils/product-query";
 
 interface ProductSearchInputProps {
   query: ProductQuery;
+  /**
+   * Route dasar untuk navigasi search — default `"/products"`. Diisi route
+   * turunan (`/products/account/{gameSlug}`, `/products/voucher/{platformSlug}`)
+   * supaya pencarian tidak lompat balik ke listing global.
+   */
+  basePath?: string;
   className?: string;
 }
 
@@ -27,6 +33,7 @@ interface ProductSearchInputProps {
  */
 export function ProductSearchInput({
   query,
+  basePath = "/products",
   className,
 }: ProductSearchInputProps) {
   const router = useRouter();
@@ -58,28 +65,40 @@ export function ProductSearchInput({
     if (trimmed === lastPushedRef.current) return;
 
     lastPushedRef.current = trimmed;
-    const href = buildProductsHref(query, {
-      q: trimmed.length > 0 ? trimmed : undefined,
-      resetPage: true,
-    });
+    const href = buildProductsHref(
+      query,
+      {
+        q: trimmed.length > 0 ? trimmed : undefined,
+        resetPage: true,
+      },
+      basePath,
+    );
     startTransition(() => {
       router.replace(href, { scroll: false });
     });
-  }, [debounced, query, router]);
+  }, [debounced, query, router, basePath]);
 
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const trimmed = value.trim();
-    const href = buildProductsHref(query, {
-      q: trimmed.length > 0 ? trimmed : undefined,
-      resetPage: true,
-    });
+    const href = buildProductsHref(
+      query,
+      {
+        q: trimmed.length > 0 ? trimmed : undefined,
+        resetPage: true,
+      },
+      basePath,
+    );
     router.push(href, { scroll: false });
   }
 
   function clear() {
     setValue("");
-    const href = buildProductsHref(query, { q: undefined, resetPage: true });
+    const href = buildProductsHref(
+      query,
+      { q: undefined, resetPage: true },
+      basePath,
+    );
     router.replace(href, { scroll: false });
   }
 

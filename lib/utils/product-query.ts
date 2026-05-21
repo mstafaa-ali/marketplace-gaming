@@ -66,6 +66,21 @@ export function parseProductQuery(sp: RawSearchParams): ProductQuery {
     toFiniteInt(pickFirst(sp.perPage), { min: 1, max: MAX_PER_PAGE }) ??
     DEFAULT_PER_PAGE;
 
+  // Parse game-specific filter tags. Convention: URL params prefixed with
+  // `ft_` (e.g. `?ft_rank=immortal&ft_skin=reaver&ft_skin=glitchpop`).
+  const filterTags: Record<string, string[]> = {};
+  for (const [key, value] of Object.entries(sp)) {
+    if (key.startsWith("ft_") && value !== undefined) {
+      const filterKey = key.slice(3); // strip "ft_"
+      if (filterKey.length > 0) {
+        const values = pickAll(value);
+        if (values.length > 0) {
+          filterTags[filterKey] = values;
+        }
+      }
+    }
+  }
+
   return {
     q: q && q.length > 0 ? q : undefined,
     games: Array.from(new Set(games)),
@@ -78,6 +93,7 @@ export function parseProductQuery(sp: RawSearchParams): ProductQuery {
         : max,
     page,
     perPage,
+    filterTags: Object.keys(filterTags).length > 0 ? filterTags : undefined,
   };
 }
 
@@ -121,16 +137,31 @@ export function buildProductQueryString(
   if (next.perPage !== DEFAULT_PER_PAGE)
     params.set("perPage", String(next.perPage));
 
+  // Serialize game-specific filter tags with `ft_` prefix.
+  if (next.filterTags) {
+    for (const [key, values] of Object.entries(next.filterTags)) {
+      for (const value of values) {
+        params.append(`ft_${key}`, value);
+      }
+    }
+  }
+
   return params.toString();
 }
 
 /**
- * Convenience: full `/products` URL with merged overrides.
+ * Convenience: full URL with merged overrides. Defaults ke `/products` agar
+ * semua call site existing tetap kompatibel; route turunan
+ * (`Game_Detail_Page` Akun di `/products/account/{gameSlug}`,
+ * `Platform_Detail_Page` di `/products/voucher/{platformSlug}`) bisa
+ * mengirim `basePath`-nya sendiri supaya kontrol sort/pagination tetap
+ * berada di route yang sama tanpa lompat balik ke `/products`.
  */
 export function buildProductsHref(
   base: ProductQuery,
   override: ProductQueryOverride = {},
+  basePath: string = "/products",
 ): string {
   const qs = buildProductQueryString(base, override);
-  return qs ? `/products?${qs}` : "/products";
+  return qs ? `${basePath}?${qs}` : basePath;
 }

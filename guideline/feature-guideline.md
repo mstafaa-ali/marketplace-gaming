@@ -181,18 +181,81 @@ Simulasi checkout front-end (tanpa backend payment gateway). Dipecah jadi 3 fase
 - [ ] Lighthouse audit (target Performance ≥ 90, Accessibility ≥ 95, SEO 100).
 - [ ] Cross-browser & device check.
 
+### Tahap 8 — Restrukturisasi Kategori (Two-Step Browse) ⬜
+
+Refactor `Browse_System` dari listing flat menjadi alur **two-step entity-first** per kategori (lihat §5 untuk kontrak URL & rendering, dan [`styling-guideline.md` §6.9](./styling-guideline.md#69-game-card--platform-card) untuk resep `Game_Card` & `Platform_Card`). Setiap fase wajib lulus `npm run lint` dan `npm run build` sebelum lanjut.
+
+#### Fase A — Tipe `Platform`, data layer, dan helper kategorisasi ⬜
+
+- [ ] `lib/types/platform.ts` — definisi `interface Platform` (`slug`, `name`, `icon`, `accent`, `productCount`) + alias `PlatformSlug`.
+- [ ] `lib/types/product.ts` — tambah field opsional `platformSlug?: string` dengan kontrak hard-rule REQ-5.2 (lihat §7).
+- [ ] `lib/data/mock-platforms.ts` — minimal 5 entry: Steam, Google Play, PlayStation Store, App Store, Xbox.
+- [ ] `lib/data/mock-products.ts` — migrasi voucher existing (mis. `voucher-google-play-100rb`) ke `platformSlug`, hapus `gameSlug` di entry voucher.
+- [ ] `lib/utils/categorization.ts` (pure helpers) — `groupGamesByCategory(products, category, gameCatalog)` + `groupPlatformsForVouchers(products, platformCatalog)`. Yang kedua **throw `Error`** saat menemukan voucher tanpa `platformSlug`.
+- [ ] `lib/data/platforms.ts` (baru) — `getPlatforms()` (cached, `cacheTag('platforms')`), `getPlatformBySlug(slug)`, `getVouchersByPlatform(platformSlug)` (throw saat data invalid).
+- [ ] `lib/data/games.ts` — tambah `getGamesForCategory(category)` (cached, `cacheTag('games', 'games:{category}')`).
+- [ ] `lib/data/products.ts` — tambah `getAccountsByGame(gameSlug)` (uncached, stok real-time) + `getTopupsByGame(gameSlug)` (cached).
+- [ ] Property tests opsional untuk `groupGamesByCategory` & `groupPlatformsForVouchers` (sum-conservation, permutation invariance, idempotence, hard-rule enforcement).
+
+#### Fase B — Category Landing Pages: Akun & Topup ⬜
+
+- [ ] `app/products/_components/game-card.tsx` — single `<Link>`, props `{ game, href, countLabel }`, aria-label deskriptif, focus ring violet-400, hit area ≥ 44×44px.
+- [ ] `app/products/_components/game-grid.tsx` — props `{ games, category: "account" | "topup", emptyText }`. Render `Game_Card` dengan `href` `/products/account/{slug}` saat `category === "account"`, atau `/checkout?category=topup&game={slug}` saat `category === "topup"`.
+- [ ] `app/products/account/page.tsx` (Server Component, cached) + `loading.tsx` + `error.tsx`.
+- [ ] `app/products/topup/page.tsx` (Server Component, cached) + `loading.tsx` + `error.tsx`.
+
+#### Fase C — `Game_Detail_Page` Akun ⬜
+
+- [ ] `app/products/account/[gameSlug]/page.tsx` — Server Component uncached, `params: Promise<{ gameSlug }>` di-`await`, `notFound()` saat game tidak ada (REQ-2.5). Reuse `product-grid`, `product-pagination`, `product-active-filters`, `product-listing-toolbar`. `generateMetadata` async title `${Game.name} — Akun`.
+- [ ] `app/products/account/[gameSlug]/loading.tsx` + `error.tsx`.
+- [ ] `app/products/account/[gameSlug]/_components/account-list-header.tsx` — header + breadcrumb + jumlah Akun.
+- [ ] Update `app/products/_components/product-filter-form.tsx` — tambah prop `scope: "global" | "game-detail"`. Saat `"game-detail"`, sembunyikan multi-select Game. `filter-store` tidak persist field `game` di scope ini.
+
+#### Fase D — Voucher routes ⬜
+
+- [ ] `app/products/_components/platform-card.tsx` — single `<Link>` ke `/products/voucher/{slug}`, struktur identik `Game_Card` namun **icon-led** (Lucide 32–48px) dengan gradient `accent`.
+- [ ] `app/products/_components/platform-grid.tsx` — props `{ platforms, emptyText }`.
+- [ ] `app/products/voucher/page.tsx` (Server Component, cached) + `loading.tsx` + `error.tsx`.
+- [ ] `app/products/voucher/[platformSlug]/page.tsx` — Server Component cached. `notFound()` HANYA saat `platformSlug` tidak ada di catalog (REQ-3.5). Empty state khusus saat valid namun 0 voucher (TANPA filter/sort UI) per REQ-3.6. Filter Game **TIDAK** dirender. `generateMetadata` async title `Voucher ${Platform.name}`.
+- [ ] `app/products/voucher/[platformSlug]/loading.tsx` + `error.tsx` + `_components/platform-list-header.tsx`.
+
+#### Fase E — `Topup_Picker` di `Checkout_Page` ⬜
+
+- [ ] `stores/checkout-store.ts` — tambah `topupSelectedId: string | null` + `setTopupSelectedId(id)`; ikut di-reset oleh `reset()`. Ephemeral (no `persist`).
+- [ ] `app/checkout/_components/topup-picker.tsx` (`"use client"`) — `<fieldset>` + `<legend>`, radio card-style, props `{ game, denominations, selectedId, onSelect }`. Empty state saat 0 denominasi (REQ-4.8).
+- [ ] `app/checkout/page.tsx` — parse `searchParams.category` + `searchParams.game` (di-`await`); saat mode topup, fetch `Game` + `Topup_Denomination[]`, redirect 302/307 ke `/products/topup` saat `gameSlug` invalid (REQ-4.7), render `<CheckoutForm mode="topup" game={...} denominations={...} />`.
+- [ ] `app/checkout/_components/checkout-form.tsx` — tambah props `mode: "cart" | "topup"`, `game?`, `denominations?`. Mode topup: `Topup_Picker` di paling atas, `OrderSummary` dari denominasi terpilih, **tidak** menyentuh `cart-store` (REQ-4.9), tombol disabled hingga (a) denominasi terpilih, (b) customer info valid, (c) payment method terpilih (REQ-4.5).
+- [ ] `app/checkout/_components/customer-info-section.tsx` — tambah prop `requireGameFields: boolean`; saat `true`, `gameId` & `gameServer` mandatory.
+- [ ] Fallback `setOrderResult` (REQ-4.10) — try/catch, simpan ke `sessionStorage` key `gm-pending-order`, navigate `/checkout/confirmation?fallback=session`.
+- [ ] `app/checkout/confirmation/_components/confirmation-content.tsx` — baca fallback `sessionStorage` saat `?fallback=session`, hapus key setelah snapshot.
+
+#### Fase F — Redirects, `Category_Chooser`, finalisasi `/products` ⬜
+
+- [ ] `next.config.ts` — `redirects()` 308 dari `/products?category=account|topup|voucher` ke route baru. Verifikasi via `curl -I` (REQ-6.5, REQ-12.1).
+- [ ] `app/products/_components/category-chooser.tsx` — 3 `<Link>` kartu (Akun, Topup, Voucher), tanpa state.
+- [ ] `app/products/page.tsx` — refactor menjadi chooser. Hapus parse `searchParams` listing flat. Pertahankan `searchParams.q` (TIDAK di-redirect; tetap routable per REQ-6.6 / REQ-12.2).
+- [ ] `app/products/loading.tsx` — skeleton 3 kartu kategori (bukan grid produk).
+- [ ] Smoke test: `/products?category=account` → 308 → `/products/account`; `/products?q=keyword` tidak di-redirect.
+
 ---
 
 ## 2. Strategi Rendering & Caching
 
-| Halaman                       | Strategi                                                                                                                                                       | Alasan                                                                      |
-| ----------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------- |
-| `/` Landing                   | Prerendered shell + cached sections (`"use cache"` + `cacheLife('hours')`)                                                                                     | Konten promosional, jarang berubah; loading harus instan untuk SEO          |
-| `/products` Listing           | Server Component, query param drives SSR. Inner list bisa di-cache per kombinasi filter atau di-stream di `<Suspense>`                                         | Hasil filter umumnya bisa di-cache pendek; pagination konsisten via URL     |
-| `/products/[slug]` Detail     | **Tidak** di-cache. Fetch dilakukan langsung di Server Component supaya `stockStatus` selalu real-time. `RelatedProducts` di-`<Suspense>` dengan `"use cache"` | Mencegah double-buy untuk akun game                                         |
-| `/checkout`                   | Client-heavy, **tidak** di-cache. Cart state dari Zustand (client). Form ephemeral. `robots: noindex`.                                                         | Data sensitif (email, WA), session-specific; tidak boleh ter-cache          |
-| `/checkout/confirmation`      | Client-heavy, **tidak** di-cache. Baca order result dari sessionStorage/Zustand. `robots: noindex`.                                                            | Hasil order unik per transaksi                                              |
-| Section "Related" / "Popular" | `"use cache"` + `cacheTag('products')`                                                                                                                         | Murah di-invalidate via `revalidateTag('products')` saat ada perubahan stok |
+| Halaman                                         | Strategi                                                                                                                                                       | Alasan                                                                                        |
+| ----------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------- |
+| `/` Landing                                     | Prerendered shell + cached sections (`"use cache"` + `cacheLife('hours')`)                                                                                     | Konten promosional, jarang berubah; loading harus instan untuk SEO                            |
+| `/products` Chooser                             | **Static** — Server Component tanpa data fetch, hanya 3 `<Link>` kartu kategori                                                                                | Tidak ada state per request; LCP harus tetap instan                                           |
+| `/products/account` Akun grid                   | Cached (`"use cache"` + `cacheTag('games', 'games:account')`)                                                                                                  | Daftar `Game` yang punya akun jarang berubah; invalidate via `revalidateTag('games:account')` |
+| `/products/account/[gameSlug]` Game_Detail Akun | **Tidak** di-cache (stok akun real-time, sama dengan `/products/[slug]`)                                                                                       | Mencegah double-buy untuk akun game per-game                                                  |
+| `/products/topup` Topup grid                    | Cached (`"use cache"` + `cacheTag('games', 'games:topup')`)                                                                                                    | Daftar `Game` yang punya paket topup jarang berubah                                           |
+| `/products/voucher` Platform grid               | Cached (`"use cache"` + `cacheTag('platforms')`)                                                                                                               | Daftar `Platform` (Steam, Google Play, dst.) sangat jarang berubah                            |
+| `/products/voucher/[platformSlug]`              | Cached (`"use cache"` + `cacheTag('voucher', 'voucher:{platformSlug}')`)                                                                                       | Voucher per platform stabil; invalidate per `platformSlug` saat ada perubahan                 |
+| `/products` Listing (legacy `?category=…`)      | **Redirect 308** ke `/products/{kategori}` lewat `next.config.ts` `redirects()`                                                                                | Backward compat dari URL lama; lihat REQ-6.5 / REQ-12.1                                       |
+| `/products/[slug]` Detail                       | **Tidak** di-cache. Fetch dilakukan langsung di Server Component supaya `stockStatus` selalu real-time. `RelatedProducts` di-`<Suspense>` dengan `"use cache"` | Mencegah double-buy untuk akun game                                                           |
+| `/checkout` (mode cart)                         | Client-heavy, **tidak** di-cache. Cart state dari Zustand (client). Form ephemeral. `robots: noindex`.                                                         | Data sensitif (email, WA), session-specific; tidak boleh ter-cache                            |
+| `/checkout?category=topup&game={slug}`          | **Uncached** — Server Component fetch `Game` + `Topup_Denomination[]` per request, `robots: noindex`                                                           | Cart dilewati (REQ-4.9); single-shot flow per game                                            |
+| `/checkout/confirmation`                        | Client-heavy, **tidak** di-cache. Baca order result dari sessionStorage/Zustand. `robots: noindex`.                                                            | Hasil order unik per transaksi                                                                |
+| Section "Related" / "Popular"                   | `"use cache"` + `cacheTag('products')`                                                                                                                         | Murah di-invalidate via `revalidateTag('products')` saat ada perubahan stok                   |
 
 Pola implementasi:
 
@@ -248,23 +311,46 @@ app/
 ├─ sitemap.ts
 ├─ robots.ts
 ├─ products/
-│  ├─ page.tsx                 # Product Listing (server, baca searchParams)
+│  ├─ page.tsx                 # Category Chooser (3 kartu Akun/Topup/Voucher)
 │  ├─ loading.tsx
-│  └─ [slug]/
-│     ├─ page.tsx              # Product Detail (SSR per request)
-│     ├─ loading.tsx
-│     ├─ error.tsx
-│     ├─ opengraph-image.tsx   # OG dinamis per produk
-│     └─ _components/          # Komponen privat untuk halaman ini
+│  ├─ account/                 # Akun: two-step (grid Game → listing Akun)
+│  │  ├─ page.tsx              # Category_Landing_Page Akun (cached, grid Game)
+│  │  ├─ loading.tsx
+│  │  ├─ error.tsx
+│  │  └─ [gameSlug]/           # Game_Detail_Page Akun (uncached, listing Akun)
+│  │     ├─ page.tsx
+│  │     ├─ loading.tsx
+│  │     ├─ error.tsx
+│  │     └─ _components/       # account-list-header.tsx
+│  ├─ topup/                   # Topup: grid Game → /checkout?category=topup
+│  │  ├─ page.tsx              # Category_Landing_Page Topup (cached, grid Game)
+│  │  ├─ loading.tsx
+│  │  └─ error.tsx
+│  ├─ voucher/                 # Voucher: two-step (grid Platform → listing Voucher)
+│  │  ├─ page.tsx              # Category_Landing_Page Voucher (cached, grid Platform)
+│  │  ├─ loading.tsx
+│  │  ├─ error.tsx
+│  │  └─ [platformSlug]/       # Platform_Detail_Page (cached, listing Voucher)
+│  │     ├─ page.tsx
+│  │     ├─ loading.tsx
+│  │     ├─ error.tsx
+│  │     └─ _components/       # platform-list-header.tsx
+│  ├─ [slug]/
+│  │  ├─ page.tsx              # Product Detail (SSR per request)
+│  │  ├─ loading.tsx
+│  │  ├─ error.tsx
+│  │  ├─ opengraph-image.tsx   # OG dinamis per produk
+│  │  └─ _components/          # Komponen privat untuk halaman ini
+│  └─ _components/             # category-chooser, game-grid, game-card, platform-grid, platform-card, product-filter-*, ...
 ├─ checkout/
-│  ├─ page.tsx                 # Checkout form (client-heavy)
+│  ├─ page.tsx                 # Checkout form (client-heavy); juga handle ?category=topup&game=…
 │  ├─ loading.tsx
 │  ├─ error.tsx
-│  ├─ _components/             # Form sections, order summary
+│  ├─ _components/             # Form sections, order summary, topup-picker.tsx (mode topup)
 │  └─ confirmation/
 │     ├─ page.tsx              # Order confirmation
 │     ├─ loading.tsx
-│     └─ _components/          # Confirmation content
+│     └─ _components/          # Confirmation content (baca fallback sessionStorage saat ?fallback=session)
 └─ _components/                # Section landing privat (tidak routable)
 
 components/
@@ -274,9 +360,9 @@ components/
 └─ product/                    # ProductCard, ProductGallery, ProductFilterSidebar, ...
 
 lib/
-├─ types/                      # Product, Game, Voucher, TopUpItem, Review, FAQItem, Cart, Checkout
-├─ data/                       # Data access (cached) + mock data
-├─ utils/                      # cn, formatCurrency, slugify, checkout helpers, ...
+├─ types/                      # Product, Game, Platform, Voucher, TopUpItem, Review, FAQItem, Cart, Checkout
+├─ data/                       # Data access (cached) + mock data (mock-platforms.ts, platforms.ts, ...)
+├─ utils/                      # cn, formatCurrency, slugify, checkout helpers, categorization helpers, ...
 └─ constants/                  # Enum game, sort options, payment methods, dsb.
 
 stores/
@@ -369,81 +455,108 @@ export default function HomePage() {
 
 ---
 
-## 5. Halaman 2 — Product Listing
+## 5. Halaman 2 — Product Listing (Two-Step Browse per Kategori)
 
-Path: `app/products/page.tsx`. Server Component yang membaca `searchParams`.
+Halaman 2 **bukan** lagi listing flat. Sejak Tahap 8 (Restrukturisasi Kategori), `/products` dipecah menjadi alur dua-langkah berbasis entitas (`Game` atau `Platform`) per kategori utama. Pengguna memilih kategori → memilih entitas → baru melihat produk yang relevan. Untuk Topup, langkah kedua langsung loncat ke `/checkout` dengan `Topup_Picker` (single-shot, tanpa cart).
 
-### 5.1 URL sebagai Sumber Kebenaran
+Resep visual `Game_Card` dan `Platform_Card` ada di [`styling-guideline.md` §6.9](./styling-guideline.md#69-game-card--platform-card).
 
-Dukung query param berikut:
+### 5A. Pemilihan Kategori (`/products`)
 
-- `q` — search keyword
-- `game` — slug game (boleh multi: `game=mobile-legends&game=valorant`)
-- `category` — `account` | `topup` | `voucher`
-- `sort` — `price_asc` | `price_desc` | `newest`
-- `min` / `max` — range harga (rupiah, integer)
-- `page` — angka, default 1
-- `perPage` — angka, default 12
+Path: `app/products/page.tsx`. Server Component **statis** (tidak ada data fetch).
 
-`searchParams` di Next 16 adalah `Promise`. Harus di-`await`:
+- Render `<CategoryChooser />` (3 kartu: Akun · Topup · Voucher) — tanpa filter, tanpa search input listing.
+- `searchParams.q` (pencarian global dari header) tetap dibiarkan routable; tidak di-redirect (REQ-6.6 / REQ-12.2). Hasil pencarian mengarah langsung ke `/products/{slug}` lewat detail produk.
+- `metadata.title = "Kategori Produk"`, indexable.
+- Skeleton (`loading.tsx`): 3 kartu kategori, **bukan** grid produk.
 
 ```tsx
-// app/products/page.tsx
+// app/products/page.tsx (sketsa)
 import type { Metadata } from "next";
-import ProductGrid from "./_components/product-grid";
-import ProductFilterSidebar from "./_components/product-filter-sidebar";
-import ProductToolbar from "./_components/product-toolbar";
-import { parseProductQuery } from "@/lib/utils/product-query";
-import { searchProducts } from "@/lib/data/products";
+import CategoryChooser from "./_components/category-chooser";
 
-export const metadata: Metadata = {
-  title: "Semua Produk",
-  description: "Top up, voucher game, dan akun premium.",
-};
+export const metadata: Metadata = { title: "Kategori Produk" };
 
-type SP = Promise<Record<string, string | string[] | undefined>>;
-
-export default async function ProductListingPage({
-  searchParams,
-}: {
-  searchParams: SP;
-}) {
-  const sp = await searchParams;
-  const query = parseProductQuery(sp);
-  const result = await searchProducts(query);
-
+export default function ProductsHubPage() {
   return (
-    <main className="container py-8 grid gap-6 lg:grid-cols-[260px_1fr]">
-      <ProductFilterSidebar query={query} />
-      <section className="space-y-4">
-        <ProductToolbar query={query} total={result.total} />
-        <ProductGrid items={result.items} />
-      </section>
+    <main className="container py-8">
+      <h1 className="sr-only">Kategori Produk</h1>
+      <CategoryChooser />
     </main>
   );
 }
 ```
 
-### 5.2 Komponen
+### 5B. Akun (`/products/account` → `/products/account/{gameSlug}`)
 
-- `app/products/_components/product-filter-sidebar.tsx` (`"use client"`) — pakai Zustand sebagai _draft state_, commit ke URL via `useRouter().push(`/products?${qs}`)` saat user klik "Terapkan". Versi mobile dibungkus `Sheet`.
-- `app/products/_components/product-toolbar.tsx` (`"use client"`) — search input dengan `useDebouncedValue` (300ms), dropdown sort, total hits.
-- `app/products/_components/product-grid.tsx` — grid `grid-cols-2 sm:grid-cols-3 lg:grid-cols-4`.
-- `app/products/_components/pagination.tsx` (`"use client"`) — link-based pagination, mempertahankan query lain.
+Alur dua-langkah:
 
-### 5.3 Filter & State
+1. **`Category_Landing_Page` Akun (`/products/account`)** — Server Component, **cached** (`"use cache"` + `cacheTag('games', 'games:account')`). Render grid `Game_Card` berisi `Game` yang punya minimal satu `Akun`. Tidak ada `Product` di halaman ini (REQ-1.1).
+   - Sort default: jumlah produk descending, tie-breaker `name` ascending (REQ-1.6).
+   - Empty: "Belum ada akun tersedia saat ini" + tombol kembali ke beranda.
+2. **`Game_Detail_Page` Akun (`/products/account/{gameSlug}`)** — Server Component, **uncached** (stok akun real-time, sama seperti `/products/[slug]`).
+   - `params: Promise<{ gameSlug: string }>` di-`await`. `notFound()` saat `gameSlug` tidak ada di catalog (REQ-2.5).
+   - Reuse listing components existing (`product-grid`, `product-pagination`, `product-active-filters`, `product-listing-toolbar`) dengan `gameSlug` ter-fix dari URL.
+   - **Filter sidebar tanpa multi-select Game** (URL sudah memfix `gameSlug`); rentang harga + status stok tetap tersedia. Lihat §5.5 Migrasi.
+   - `searchParams` yang relevan: `sort`, `min`, `max`, `page`, `perPage`. Filter Game (`game=`) di-drop dari `product-filter-form.tsx` saat `scope === "game-detail"` (REQ-2.7, REQ-8.5).
+   - Header: nama `Game`, breadcrumb `Beranda > Akun > {Game.name}`, jumlah `Akun` (REQ-2.3).
+   - `generateMetadata` async → title `${Game.name} — Akun`, indexable.
+   - Empty (game valid, 0 akun): "Belum ada akun untuk {Game.name}" + tombol kembali ke `/products/account` (REQ-2.6).
 
-- Zustand store `filter-store.ts` hanya menampung _draft_ (sebelum apply). Setelah apply, baca dari URL.
-- Untuk multi-select game, gunakan checkbox group; serialize jadi array di query string.
-- Untuk debounce search: client component dengan `useEffect` yang `router.replace` setelah delay.
+### 5C. Topup (`/products/topup` → `/checkout?category=topup&game={gameSlug}`)
 
-### 5.4 Definition of Done
+Alur **dua-langkah single-shot**, melompati cart:
 
-- [ ] Refresh halaman tetap mempertahankan filter (karena state di URL).
-- [ ] Link share-able: paste URL produktif menampilkan hasil yang sama.
-- [ ] Skeleton tampil saat transisi route (`loading.tsx`).
-- [ ] Empty state ramah ("Tidak ditemukan produk untuk filter ini").
-- [ ] Pagination keyboard-accessible.
+1. **`Category_Landing_Page` Topup (`/products/topup`)** — Server Component, **cached** (`"use cache"` + `cacheTag('games', 'games:topup')`). Render grid `Game_Card` berisi `Game` yang punya minimal satu `Topup` (REQ-1.2).
+   - `Game_Card` di sini secara visual **identik** dengan `Game_Card` di Akun; tujuan navigasi ditentukan oleh konteks `Category_Landing_Page` saat ini (REQ-2.1). Klik card → `/checkout?category=topup&game={slug}`.
+   - Empty: "Belum ada topup tersedia saat ini".
+2. **`Checkout_Page` mode Topup (`/checkout?category=topup&game={gameSlug}`)** — uncached, `robots: noindex`.
+   - Server Component `app/checkout/page.tsx` parse `searchParams.category` + `searchParams.game` (di-`await`).
+   - Saat `gameSlug` invalid → redirect 302/307 ke `/products/topup` (REQ-4.7).
+   - Saat valid → fetch `Game` + `Topup_Denomination[]` dan render `<CheckoutForm mode="topup" game={...} denominations={...} />` dengan `Topup_Picker` di posisi paling atas form.
+   - **Tidak menyentuh `cart-store`** (REQ-4.9). `OrderSummary` bersumber dari denominasi terpilih, bukan cart.
+   - `customer-info-section.tsx` mempelakukan `gameId` & `gameServer` sebagai **required** saat mode topup (REQ-4.6).
+   - Tombol "Bayar Sekarang" disabled sampai (a) denominasi terpilih, (b) customer info valid, (c) payment method terpilih (REQ-4.5).
+   - Empty (game valid, 0 denominasi): "Belum ada paket topup untuk {Game.name}" + tombol kembali (REQ-4.8).
+   - **Fallback `setOrderResult` (REQ-4.10):** bungkus `checkout-store.setOrderResult` di try/catch; pada catch simpan `OrderResult` ke `sessionStorage` (key `gm-pending-order`) lalu navigate `/checkout/confirmation?fallback=session`. Halaman konfirmasi membaca fallback setelah hidrasi dan menghapus key setelah snapshot.
+
+### 5D. Voucher (`/products/voucher` → `/products/voucher/{platformSlug}`)
+
+Alur dua-langkah berbasis `Platform` (entitas baru di `lib/types/platform.ts`):
+
+1. **`Category_Landing_Page` Voucher (`/products/voucher`)** — Server Component, **cached** (`"use cache"` + `cacheTag('platforms')`). Render grid `Platform_Card` berisi `Platform` yang punya minimal satu `Voucher` (REQ-1.3).
+   - Empty: "Belum ada voucher tersedia saat ini".
+2. **`Platform_Detail_Page` (`/products/voucher/{platformSlug}`)** — Server Component, **cached** (`"use cache"` + `cacheTag('voucher', 'voucher:{platformSlug}')`).
+   - `params: Promise<{ platformSlug: string }>` di-`await`. `notFound()` **hanya** saat `platformSlug` tidak ada di `Platform_Catalog` (REQ-3.5); error lain (fetch gagal, parsing) di-throw → ditangkap `error.tsx`.
+   - Sort + pagination didukung; **filter Game TIDAK dirender** (Voucher tidak terikat Game) (REQ-3.4, REQ-8.4).
+   - Header: nama `Platform`, breadcrumb `Beranda > Voucher > {Platform.name}`, jumlah `Voucher` (REQ-3.3).
+   - `generateMetadata` async → title `Voucher ${Platform.name}`, indexable.
+   - Empty (platform valid, 0 voucher): "Belum ada voucher untuk {Platform.name}" + tombol kembali, **tanpa** kontrol filter/sort (REQ-3.6).
+
+### 5.5 Catatan Migrasi (Tahap 8)
+
+Refactor ini **mengubah peran**, bukan menghapus, file existing. Dampak yang harus dipahami sebelum mulai Fase A–F:
+
+- **`app/products/page.tsx`** — listing flat existing dipindah perannya menjadi `Category_Chooser` (3 kartu kategori). Logika `parseProductQuery` + `searchProducts` di-pindah/reuse di `Game_Detail_Page` Akun dan `Platform_Detail_Page`. `searchParams.q` tetap routable agar global search dari header tidak putus (REQ-6.6, REQ-12.2, REQ-12.4).
+- **`app/products/_components/product-filter-sidebar.tsx`** + **`product-filter-form.tsx`** — tambah prop `scope: "global" | "game-detail"`. Saat `scope === "game-detail"`, multi-select Game di-hide (URL sudah memfix `gameSlug`). `filter-store` tidak boleh persist field `game` di scope ini (REQ-2.7, REQ-8.3, REQ-8.5).
+- **`app/_components/popular-game-grid.tsx`** — pola visual jadi rujukan untuk `Game_Card` & `Platform_Card` baru. Tidak diubah, tapi visual di `Category_Landing_Page` harus **konsisten** dengannya (cover image, accent gradient, name + count). `Platform_Card` ikut pola yang sama namun **icon-led** (Lucide 32–48px) alih-alih cover image. Resep lengkap: [`styling-guideline.md` §6.9](./styling-guideline.md#69-game-card--platform-card).
+- **`lib/types/product.ts`** — tambah field opsional `platformSlug?: string`. Kontrak hard-rule: `category === "voucher"` wajib `platformSlug`, `gameSlug` boleh kosong; `category === "account" | "topup"` wajib `gameSlug`, `platformSlug` harus kosong. Validasi di runtime via data layer (`getVouchersByPlatform` melempar `Error` saat menemukan voucher tanpa `platformSlug`) — tidak ada periode tenggang (REQ-5.2). Lihat §7.
+- **`lib/data/mock-products.ts`** — voucher existing (mis. `voucher-google-play-100rb`) di-migrasi: `gameSlug` dihapus, `platformSlug` di-set sesuai (`"google-play"`, `"steam"`, dst.). Tambah `lib/data/mock-platforms.ts` minimal 5 entry: Steam, Google Play, PlayStation Store, App Store, Xbox.
+- **`next.config.ts`** — tambah `redirects()` 308 untuk `/products?category=account|topup|voucher` ke route baru (REQ-6.5, REQ-12.1). Backward compat tidak dianggap selesai sampai redirect terbukti aktif (uji manual via `curl -I`).
+- **Komponen baru di `app/products/_components/`:** `category-chooser.tsx`, `game-grid.tsx`, `game-card.tsx`, `platform-grid.tsx`, `platform-card.tsx`. Komponen baru di `app/checkout/_components/`: `topup-picker.tsx`.
+- **Zustand `checkout-store`** — tambah field `topupSelectedId: string | null` + setter `setTopupSelectedId(id)`; ikut di-reset oleh `reset()`. Tetap ephemeral (no `persist`).
+
+### 5.6 Definition of Done (Tahap 8 — keseluruhan)
+
+- [ ] `/products` menampilkan `CategoryChooser` (3 kartu) — listing flat tidak ada lagi.
+- [ ] `/products/account`, `/products/topup`, `/products/voucher` render grid entitas, bukan grid produk.
+- [ ] `/products/account/{gameSlug}` listing `Akun` dengan filter sidebar tanpa multi-select Game.
+- [ ] `/products/voucher/{platformSlug}` listing `Voucher` dengan sort + pagination, tanpa filter Game.
+- [ ] `/checkout?category=topup&game={gameSlug}` memunculkan `Topup_Picker` di paling atas form, cart tidak tersentuh.
+- [ ] Redirect 308 dari `/products?category=…` ke route baru aktif dan terverifikasi via `curl -I`.
+- [ ] `/products?q=…` tetap routable sebagai pencarian global.
+- [ ] Empty/loading/error state per route baru terpasang sesuai §9 (REQ-9.1, REQ-9.2).
+- [ ] `npm run lint` ✅, `npm run build` ✅ di setiap fase A–F.
 
 ---
 
@@ -549,8 +662,19 @@ export interface Product {
   title: string;
   shortDescription: string;
   category: ProductCategory;
-  gameSlug: string;
-  gameName: string;
+  /**
+   * Slug Game yang terkait. WAJIB untuk `category` `"account" | "topup"`.
+   * HARUS kosong saat `category === "voucher"` (Voucher dikelompokkan per Platform, bukan Game).
+   */
+  gameSlug?: string;
+  gameName?: string;
+  /**
+   * Slug Platform tujuan voucher (Steam, Google Play, dst.).
+   * WAJIB untuk `category === "voucher"`. HARUS kosong saat `category` `"account" | "topup"`.
+   * Kontrak hard-rule REQ-5.2: data layer (`getVouchersByPlatform`) MELEMPAR `Error`
+   * saat menemukan voucher tanpa `platformSlug`. Tidak ada periode tenggang migrasi.
+   */
+  platformSlug?: string;
   coverImage: MediaItem;
   media: MediaItem[];
   price: PriceInfo;
@@ -561,6 +685,36 @@ export interface Product {
   createdAt: string; // ISO date
 }
 ```
+
+### `Platform` — entitas baru (Tahap 8)
+
+```ts
+// lib/types/platform.ts
+export interface Platform {
+  /** Slug stabil (kebab-case), contoh: "steam", "google-play". */
+  slug: string;
+  /** Nama display, contoh: "Steam", "Google Play". */
+  name: string;
+  /**
+   * Nama ikon Lucide React, contoh: `"Gamepad2"`, `"Smartphone"`.
+   * Map ke ikon konkret di `Platform_Card`.
+   */
+  icon: string;
+  /** Tailwind class gradient untuk accent kartu, contoh: "from-violet-500 to-accent-pink". */
+  accent: string;
+  /** Jumlah voucher tersedia (computed saat data access; bukan field DB). */
+  productCount: number;
+}
+
+export type PlatformSlug = Platform["slug"];
+```
+
+### Kontrak hard-rule `Voucher` ↔ `Platform` (REQ-5.2)
+
+- `category === "voucher"` → `platformSlug` **wajib** diisi, `gameSlug` boleh kosong.
+- `category === "account" | "topup"` → `gameSlug` **wajib**, `platformSlug` harus kosong.
+- Validasi di **runtime data layer**, bukan type system (terlalu berisik dengan discriminated union di codebase saat ini). Implementasi: `lib/utils/categorization.ts` `groupPlatformsForVouchers` dan `lib/data/platforms.ts` `getVouchersByPlatform` melempar `Error` deskriptif saat menemukan voucher tanpa `platformSlug`.
+- Tidak ada periode tenggang migrasi. Mock voucher existing di `lib/data/mock-products.ts` (mis. `voucher-google-play-100rb`) di-migrasi sekaligus saat Fase A.
 
 Tipe lain yang perlu dibuat: `Game`, `Voucher`, `TopUpDenomination`, `Review`, `FaqItem`, `CartItem`, `ProductQuery`, `PaginatedResult<T>`.
 

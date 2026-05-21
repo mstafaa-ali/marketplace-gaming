@@ -3,6 +3,7 @@
 import Autoplay from "embla-carousel-autoplay";
 import useEmblaCarousel from "embla-carousel-react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
+import Image from "next/image";
 import Link from "next/link";
 import { useCallback, useId, useMemo, useSyncExternalStore } from "react";
 import { Badge } from "@/components/ui/badge";
@@ -40,8 +41,7 @@ export function PromoCarouselTrack({
   const [emblaRef, emblaApi] = useEmblaCarousel(
     {
       loop: true,
-      align: "start",
-      containScroll: "trimSnaps",
+      align: "center",
       skipSnaps: false,
     },
     plugins,
@@ -95,22 +95,38 @@ export function PromoCarouselTrack({
 
       <div className="relative">
         <div ref={emblaRef} className="overflow-hidden">
-          <ul className="flex touch-pan-y gap-4">
+          <ul className="flex touch-pan-y -ml-4">
             {slides.map((slide, idx) => (
               <li
                 key={slide.id}
                 role="group"
                 aria-roledescription="slide"
                 aria-label={`Slide ${idx + 1} dari ${slides.length}`}
-                className="min-w-0 shrink-0 grow-0 basis-[88%] sm:basis-[70%] lg:basis-[60%] xl:basis-[50%]"
+                className="min-w-0 shrink-0 grow-0 basis-[80%] pl-4 sm:basis-[60%] lg:basis-[50%] xl:basis-[45%]"
               >
                 <article
                   className={cn(
                     "group relative h-full overflow-hidden rounded-2xl border border-white/10",
-                    "bg-linear-to-br p-6 sm:p-10",
-                    slide.gradient,
+                    "p-6 sm:p-10",
                   )}
                 >
+                  {/* Background image */}
+                  <Image
+                    src={slide.image}
+                    alt=""
+                    fill
+                    className="object-cover"
+                    sizes="(max-width: 640px) 88vw, (max-width: 1024px) 70vw, 50vw"
+                  />
+
+                  {/* Gradient overlay for text readability */}
+                  <div
+                    className={cn(
+                      "absolute inset-0 bg-linear-to-br",
+                      slide.gradient,
+                    )}
+                  />
+
                   <div
                     aria-hidden
                     className="pointer-events-none absolute -right-16 -top-16 size-56 rounded-full bg-white/10 blur-3xl"
@@ -121,7 +137,7 @@ export function PromoCarouselTrack({
                   />
 
                   <div className="relative flex h-full flex-col justify-between gap-6 text-white">
-                    <div className="space-y-3">
+                    <div className="space-y-3 w-fit">
                       {slide.badge ? (
                         <Badge
                           variant="primary"
@@ -130,10 +146,10 @@ export function PromoCarouselTrack({
                           {slide.badge}
                         </Badge>
                       ) : null}
-                      <h3 className="font-display text-2xl font-semibold leading-tight tracking-tight sm:text-3xl md:text-4xl">
+                      <h3 className="font-display text-2xl font-semibold leading-tight tracking-tight drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)] sm:text-3xl md:text-4xl">
                         {slide.title}
                       </h3>
-                      <p className="max-w-md text-sm text-white/85 sm:text-base">
+                      <p className="max-w-md text-sm text-white/85 drop-shadow-[0_1px_3px_rgba(0,0,0,0.8)] sm:text-base">
                         {slide.description}
                       </p>
                     </div>
@@ -154,16 +170,6 @@ export function PromoCarouselTrack({
             ))}
           </ul>
         </div>
-
-        {/* Side fades */}
-        <div
-          aria-hidden
-          className="pointer-events-none absolute inset-y-0 left-0 w-6 bg-linear-to-r from-bg to-transparent sm:w-10"
-        />
-        <div
-          aria-hidden
-          className="pointer-events-none absolute inset-y-0 right-0 w-6 bg-linear-to-l from-bg to-transparent sm:w-10"
-        />
       </div>
 
       {/* Controls */}

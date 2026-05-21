@@ -46,8 +46,8 @@ export function CtaClosing() {
         <div aria-hidden className="pointer-events-none absolute inset-0 -z-10">
           <div className="absolute inset-0 bg-linear-to-br from-violet-900/60 via-bg-elevated to-bg-elevated" />
           <div className="absolute -left-24 top-1/3 size-72 rounded-full bg-violet-500/30 blur-3xl" />
-          <div className="absolute -right-16 -top-20 size-80 rounded-full bg-accent-pink/25 blur-3xl" />
-          <div className="absolute -bottom-24 right-1/4 size-72 rounded-full bg-violet-700/40 blur-3xl" />
+          <div className="absolute -right-16 -top-20 size-80 rounded-full bg-purple-500/25 blur-3xl" />
+          <div className="absolute -bottom-24 right-1/4 size-72 rounded-full bg-purple-700/40 blur-3xl" />
         </div>
 
         <div className="grid gap-10 lg:grid-cols-[1.1fr_1fr] lg:items-center lg:gap-16">
@@ -63,7 +63,7 @@ export function CtaClosing() {
               className="font-display text-3xl font-semibold tracking-tight sm:text-4xl lg:text-5xl"
             >
               Saatnya naik level.
-              <span className="block bg-linear-to-r from-violet-200 via-accent-pink to-violet-300 bg-clip-text text-transparent">
+              <span className="block bg-linear-to-r from-violet-200 via-purple-400 to-violet-300 bg-clip-text text-transparent">
                 Top up & beli akun tanpa drama.
               </span>
             </h2>

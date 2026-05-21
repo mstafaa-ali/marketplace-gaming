@@ -14,6 +14,14 @@ interface ProductListingToolbarProps {
    * sort control on small screens.
    */
   leadingSlot?: React.ReactNode;
+  /**
+   * Route dasar yang dipakai oleh kontrol search & sort di dalam toolbar.
+   * Default `"/products"` agar listing global tetap kompatibel; route
+   * turunan (`/products/account/{gameSlug}`, `/products/voucher/{platformSlug}`)
+   * mengirim path-nya sendiri supaya navigasi tidak lompat balik ke listing
+   * global.
+   */
+  basePath?: string;
   className?: string;
 }
 
@@ -27,6 +35,7 @@ export function ProductListingToolbar({
   query,
   total,
   leadingSlot,
+  basePath = "/products",
   className,
 }: ProductListingToolbarProps) {
   return (
@@ -38,6 +47,7 @@ export function ProductListingToolbar({
     >
       <ProductSearchInput
         query={query}
+        basePath={basePath}
         className="w-full sm:max-w-md sm:flex-1"
       />
 
@@ -49,7 +59,7 @@ export function ProductListingToolbar({
           </span>{" "}
           produk ditemukan
         </p>
-        <ProductSortSelect query={query} />
+        <ProductSortSelect query={query} basePath={basePath} />
       </div>
     </div>
   );

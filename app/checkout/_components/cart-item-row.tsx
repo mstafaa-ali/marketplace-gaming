@@ -2,14 +2,21 @@
 
 import Image from "next/image";
 import { formatIDR } from "@/lib/utils/format";
-import type { CartItem } from "@/lib/types/common";
+import type { OrderItem } from "@/lib/types/checkout";
 
 export interface CartItemRowProps {
-  item: CartItem;
+  /**
+   * Item baris ringkasan order. Menerima `OrderItem` agar komponen ini
+   * reusable untuk dua sumber: keranjang (`cart-store`) maupun
+   * `Topup_Denomination` terpilih di alur Topup. Kolom `productId` dari
+   * `CartItem` tidak dirender, sehingga `OrderItem` cukup.
+   */
+  item: OrderItem;
 }
 
 /**
- * Compact row for a cart item in the order summary.
+ * Baris compact item pesanan untuk dipakai di `Order_Summary_Card`.
+ * Menampilkan thumbnail, judul, `qty × harga`, dan total baris.
  */
 export function CartItemRow({ item }: CartItemRowProps) {
   return (

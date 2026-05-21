@@ -59,12 +59,32 @@ export function generateOrderId(): string {
 }
 
 /**
- * Validate customer info fields. Returns a map of field → error message.
- * Empty map means all valid.
+ * Opsi tambahan untuk `validateCustomerInfo`. Membuka pintu bagi pemanggil
+ * untuk men-toggle validasi field game tanpa memaksakan parameter posisi.
+ */
+export interface ValidateCustomerInfoOptions {
+  /**
+   * Jika `true`, `gameId` dan `gameServer` divalidasi sebagai mandatory.
+   * Jika `false` atau dihilangkan, kedua field di-skip (alur cart non-game).
+   */
+  requireGameFields?: boolean;
+}
+
+/**
+ * Validasi field data pemesan. Mengembalikan map `field → pesan error`.
+ * Map kosong berarti semua valid.
+ *
+ * Backward compatibility: parameter `options` opsional. Jika tidak
+ * diberikan, validasi default tidak menyentuh field game (`gameId` dan
+ * `gameServer` di-skip), sehingga alur cart existing tetap berjalan.
+ *
+ * @param info Map field name → value (boleh `undefined`).
+ * @param options Opsi validasi tambahan; `requireGameFields` mengaktifkan
+ *   pengecekan `gameId` dan `gameServer` untuk alur topup/account.
  */
 export function validateCustomerInfo(
   info: Record<string, string | undefined>,
-  requireGameId: boolean,
+  options: ValidateCustomerInfoOptions = {},
 ): Record<string, string> {
   const errors: Record<string, string> = {};
 
@@ -89,10 +109,15 @@ export function validateCustomerInfo(
     errors.whatsapp = "Format: 08xxxxxxxxxx (10-13 digit).";
   }
 
-  if (requireGameId) {
+  if (options.requireGameFields) {
     const gameId = (info.gameId ?? "").trim();
     if (!gameId) {
       errors.gameId = "ID Game wajib diisi untuk produk ini.";
+    }
+
+    const gameServer = (info.gameServer ?? "").trim();
+    if (!gameServer) {
+      errors.gameServer = "Server game wajib diisi untuk produk ini.";
     }
   }
 

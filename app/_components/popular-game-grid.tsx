@@ -9,6 +9,7 @@ import {
   Target,
   type LucideIcon,
 } from "lucide-react";
+import Image from "next/image";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { getPopularGames } from "@/lib/data/games";
@@ -106,12 +107,26 @@ function GameCard({ game }: GameCardProps) {
           game.accent,
         )}
       >
+        {game.image ? (
+          <Image
+            src={game.image}
+            alt=""
+            fill
+            className="object-cover transition-transform duration-(--duration-base) ease-snappy group-hover:scale-105"
+            sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 16vw"
+          />
+        ) : (
+          <div className="absolute inset-0 grid place-items-center">
+            <span className="grid size-14 place-items-center rounded-2xl bg-white/15 text-white shadow-md backdrop-blur transition-transform duration-(--duration-base) ease-snappy group-hover:scale-105 sm:size-16">
+              <Icon
+                className="size-7 sm:size-8"
+                strokeWidth={1.75}
+                aria-hidden
+              />
+            </span>
+          </div>
+        )}
         <div className="pointer-events-none absolute inset-0 bg-linear-to-t from-black/40 via-transparent to-white/10" />
-        <div className="absolute inset-0 grid place-items-center">
-          <span className="grid size-14 place-items-center rounded-2xl bg-white/15 text-white shadow-md backdrop-blur transition-transform duration-(--duration-base) ease-snappy group-hover:scale-105 sm:size-16">
-            <Icon className="size-7 sm:size-8" strokeWidth={1.75} aria-hidden />
-          </span>
-        </div>
       </div>
 
       <div className="space-y-1 p-3 sm:p-4">

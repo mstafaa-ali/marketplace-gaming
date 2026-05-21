@@ -134,7 +134,7 @@ function TestimonialCard({ testimonial }: TestimonialCardProps) {
       <footer className="mt-auto flex items-center gap-3 border-t border-border/70 pt-4">
         <span
           aria-hidden
-          className="grid size-10 place-items-center rounded-full bg-linear-to-br from-violet-600 to-fuchsia-500 font-display text-sm font-semibold text-white"
+          className="grid size-10 place-items-center rounded-full bg-linear-to-br from-violet-500 to-purple-500 font-display text-sm font-semibold text-white"
         >
           {initials}
         </span>
