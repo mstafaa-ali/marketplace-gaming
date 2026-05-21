@@ -1,8 +1,10 @@
-import { Gamepad2, UserRound } from "lucide-react";
+import { UserRound } from "lucide-react";
+import Image from "next/image";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { CartButton } from "@/components/layout/cart-button";
 import { GlobalSearch } from "@/components/layout/global-search";
+import { MobileNav } from "@/components/layout/mobile-nav";
 import { ThemeToggle } from "@/components/common/theme-toggle";
 
 const NAV_LINKS = [
@@ -16,16 +18,23 @@ export function SiteHeader() {
   return (
     <header className="sticky top-0 z-40 border-b border-border bg-bg/80 backdrop-blur supports-backdrop-filter:bg-bg/60">
       <div className="container-page flex h-16 items-center gap-4">
+        <MobileNav />
+
         <Link
           href="/"
           className="flex items-center gap-2 text-fg transition-opacity hover:opacity-90"
-          aria-label="GameVault — beranda"
+          aria-label="Johen — beranda"
         >
-          <span className="grid size-9 place-items-center rounded-md bg-primary text-white shadow-glow">
-            <Gamepad2 className="size-5" aria-hidden />
-          </span>
+          <Image
+            src="/image/johen-logo.png"
+            alt="Johen logo"
+            width={44}
+            height={44}
+            className="size-11 object-contain"
+            priority
+          />
           <span className="hidden text-lg font-semibold tracking-tight sm:inline">
-            GameVault
+            Johen
           </span>
         </Link>
 

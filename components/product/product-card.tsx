@@ -96,9 +96,14 @@ export function ProductCard({
           >
             {CATEGORY_LABELS[product.category]}
           </Badge>
-          <span className="text-xs font-medium text-white/85">
-            {product.gameName}
-          </span>
+          {/* `gameName` opsional sejak Fase A task 3.3 — voucher tidak punya
+              game. Skip label saat tidak tersedia agar tidak merender
+              "undefined" pada card voucher. */}
+          {product.gameName ? (
+            <span className="text-xs font-medium text-white/85">
+              {product.gameName}
+            </span>
+          ) : null}
         </div>
       </div>
 

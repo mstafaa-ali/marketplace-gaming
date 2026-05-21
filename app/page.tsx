@@ -1,9 +1,12 @@
 import { Suspense } from "react";
+import { CtaClosing } from "./_components/cta-closing";
+import { FaqAccordion } from "./_components/faq-accordion";
 import { FeaturedProducts } from "./_components/featured-products";
 import { FeaturedProductsSkeleton } from "./_components/featured-products-skeleton";
 import { HeroSection } from "./_components/hero-section";
 import { PopularGameGrid } from "./_components/popular-game-grid";
 import { PromoCarousel } from "./_components/promo-carousel";
+import { TestimonialGrid } from "./_components/testimonial-grid";
 
 export default function HomePage() {
   return (
@@ -14,16 +17,9 @@ export default function HomePage() {
       <Suspense fallback={<FeaturedProductsSkeleton />}>
         <FeaturedProducts />
       </Suspense>
-
-      <section className="container-page py-16">
-        <h2 className="text-2xl font-semibold tracking-tight">
-          Roadmap berikutnya
-        </h2>
-        <p className="mt-2 text-fg-muted">
-          Hero, Promo Carousel, Popular Games, dan Featured Products siap.
-          Berikutnya: Testimoni, FAQ.
-        </p>
-      </section>
+      <TestimonialGrid />
+      <FaqAccordion />
+      <CtaClosing />
     </>
   );
 }

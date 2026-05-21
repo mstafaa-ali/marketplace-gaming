@@ -9,7 +9,8 @@ export const MOCK_PROMOS: PromoSlide[] = [
     description: "Khusus pengguna baru, hanya minggu ini.",
     ctaLabel: "Klaim Promo",
     ctaHref: "/products?game=mobile-legends&category=topup",
-    gradient: "from-violet-700 via-fuchsia-600 to-violet-500",
+    gradient: "from-violet-700/50 via-fuchsia-600/40 to-violet-500/50",
+    image: "/image/promo-1.jpg",
   },
   {
     id: "promo-2",
@@ -18,7 +19,8 @@ export const MOCK_PROMOS: PromoSlide[] = [
     description: "Garansi 100% anti-minus, full bundle skin.",
     ctaLabel: "Lihat Akun",
     ctaHref: "/products?game=valorant&category=account",
-    gradient: "from-rose-600 via-violet-700 to-violet-900",
+    gradient: "from-rose-600/50 via-violet-700/40 to-violet-900/50",
+    image: "/image/promo-2.jpg",
   },
   {
     id: "promo-3",
@@ -27,7 +29,8 @@ export const MOCK_PROMOS: PromoSlide[] = [
     description: "Lebih murah hingga 12% untuk paket bundling.",
     ctaLabel: "Cek Bundling",
     ctaHref: "/products?category=voucher",
-    gradient: "from-cyan-500 via-violet-600 to-violet-900",
+    gradient: "from-cyan-500/50 via-violet-600/40 to-violet-900/50",
+    image: "/image/promo-3.jpg",
   },
 ];
 
