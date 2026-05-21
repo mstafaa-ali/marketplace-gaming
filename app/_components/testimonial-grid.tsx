@@ -42,9 +42,8 @@ export async function TestimonialGrid() {
             Kata mereka yang sudah top up & beli akun
           </h2>
           <p className="max-w-xl text-sm text-fg-muted">
-            Pengalaman jujur dari pelanggan GameVault — mulai dari top up
-            harian, bundling voucher, sampai akun premium dengan garansi
-            anti-minus.
+            Pengalaman jujur dari pelanggan LootBox — mulai dari top up harian,
+            bundling voucher, sampai akun premium dengan garansi anti-minus.
           </p>
         </div>
 

@@ -41,7 +41,7 @@ export async function FaqAccordion() {
             Pertanyaan yang sering ditanyakan
           </h2>
           <p className="max-w-md text-sm text-fg-muted">
-            Belum ketemu jawabannya? Tim support GameVault siap bantu di kanal
+            Belum ketemu jawabannya? Tim support LootBox siap bantu di kanal
             chat 24 jam, atau lihat pusat bantuan untuk panduan lengkap.
           </p>
 

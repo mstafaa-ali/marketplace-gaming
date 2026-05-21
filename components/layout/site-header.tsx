@@ -22,20 +22,27 @@ export function SiteHeader() {
 
         <Link
           href="/"
-          className="flex items-center gap-2 text-fg transition-opacity hover:opacity-90"
-          aria-label="Johen — beranda"
+          className="flex items-center text-fg transition-opacity hover:opacity-90"
+          aria-label="LootBox — beranda"
         >
+          {/* Logo kecil (icon) untuk mobile */}
           <Image
-            src="/image/johen-logo.png"
-            alt="Johen logo"
+            src="/image/logo/lootbox-logo.png"
+            alt="LootBox logo"
             width={44}
             height={44}
-            className="size-11 object-contain"
+            className="size-20 object-contain sm:hidden"
             priority
           />
-          <span className="hidden text-lg font-semibold tracking-tight sm:inline">
-            Johen
-          </span>
+          {/* Logo full untuk desktop */}
+          <Image
+            src="/image/logo/lootbox-logo-new.png"
+            alt="LootBox logo"
+            width={160}
+            height={160}
+            className="hidden h-20 w-auto object-contain sm:block"
+            priority
+          />
         </Link>
 
         <nav

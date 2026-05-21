@@ -1,4 +1,4 @@
-import { Gamepad2 } from "lucide-react";
+import Image from "next/image";
 import Link from "next/link";
 
 const COLUMNS = [
@@ -37,15 +37,16 @@ export function SiteFooter() {
         <div className="space-y-3">
           <Link
             href="/"
-            className="flex items-center gap-2"
-            aria-label="GameVault — beranda"
+            className="flex items-center"
+            aria-label="LootBox — beranda"
           >
-            <span className="grid size-9 place-items-center rounded-md bg-primary text-white shadow-glow">
-              <Gamepad2 className="size-5" aria-hidden />
-            </span>
-            <span className="text-lg font-semibold tracking-tight">
-              GameVault
-            </span>
+            <Image
+              src="/image/logo/lootbox-logo-new.png"
+              alt="LootBox logo"
+              width={160}
+              height={160}
+              className="h-24 w-auto object-contain"
+            />
           </Link>
           <p className="max-w-xs text-sm text-fg-muted">
             Marketplace digital untuk top up, voucher, dan akun game premium
@@ -77,7 +78,7 @@ export function SiteFooter() {
       <div className="border-t border-border">
         <div className="container-page flex flex-col items-start justify-between gap-3 py-5 text-xs text-fg-subtle md:flex-row md:items-center">
           <p>
-            © {new Date().getFullYear()} GameVault. Semua hak cipta dilindungi.
+            © {new Date().getFullYear()} LootBox. Semua hak cipta dilindungi.
           </p>
           <p>Made with care for Indonesian gamers.</p>
         </div>

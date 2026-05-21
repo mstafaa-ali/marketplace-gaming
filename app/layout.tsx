@@ -25,12 +25,12 @@ const spaceGrotesk = Space_Grotesk({
 
 export const metadata: Metadata = {
   title: {
-    default: "GameVault — Top Up, Voucher & Akun Game Terpercaya",
-    template: "%s | GameVault",
+    default: "LootBox — Top Up, Voucher & Akun Game Terpercaya",
+    template: "%s | LootBox",
   },
   description:
     "Marketplace digital untuk top up, voucher, dan akun game premium dengan garansi anti-minus dan proses instan.",
-  applicationName: "GameVault",
+  applicationName: "LootBox",
   keywords: [
     "top up game",
     "voucher game",
@@ -44,8 +44,8 @@ export const metadata: Metadata = {
   openGraph: {
     type: "website",
     locale: "id_ID",
-    siteName: "GameVault",
-    title: "GameVault — Top Up, Voucher & Akun Game Terpercaya",
+    siteName: "LootBox",
+    title: "LootBox — Top Up, Voucher & Akun Game Terpercaya",
     description:
       "Marketplace digital untuk top up, voucher, dan akun game premium dengan garansi anti-minus.",
   },
@@ -72,7 +72,10 @@ export default function RootLayout({
       suppressHydrationWarning
       className={`${geistSans.variable} ${geistMono.variable} ${spaceGrotesk.variable} h-full antialiased`}
     >
-      <body className="flex min-h-full flex-col bg-bg text-fg">
+      <body
+        className="flex min-h-full flex-col bg-bg text-fg"
+        suppressHydrationWarning
+      >
         <ThemeProvider>
           <a
             href="#main-content"

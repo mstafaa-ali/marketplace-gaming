@@ -2,7 +2,6 @@
 
 import {
   CreditCard,
-  Gamepad2,
   Home,
   Menu,
   ShoppingBag,
@@ -10,6 +9,7 @@ import {
   UserRound,
   Zap,
 } from "lucide-react";
+import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
@@ -57,11 +57,14 @@ export function MobileNav() {
       </SheetTrigger>
       <SheetContent side="left" className="w-72">
         <SheetHeader>
-          <SheetTitle className="flex items-center gap-2">
-            <span className="grid size-8 place-items-center rounded-md bg-primary text-white shadow-glow">
-              <Gamepad2 className="size-4" aria-hidden />
-            </span>
-            GameVault
+          <SheetTitle className="flex items-center">
+            <Image
+              src="/image/logo/lootbox-logo-new.png"
+              alt="LootBox logo"
+              width={160}
+              height={160}
+              className="h-20 w-auto object-contain"
+            />
           </SheetTitle>
         </SheetHeader>
         <SheetBody>

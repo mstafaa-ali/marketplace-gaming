@@ -14,7 +14,7 @@ const CTA_HIGHLIGHTS = [
     icon: ShieldCheck,
     title: "Garansi anti-minus",
     description:
-      "Setiap akun premium dikurasi manual dan dilindungi garansi resmi GameVault.",
+      "Setiap akun premium dikurasi manual dan dilindungi garansi resmi LootBox.",
   },
   {
     icon: Zap,
@@ -69,7 +69,7 @@ export function CtaClosing() {
             </h2>
 
             <p className="max-w-xl text-base text-fg-muted sm:text-lg">
-              Bergabung bareng ribuan gamer yang sudah pakai GameVault untuk top
+              Bergabung bareng ribuan gamer yang sudah pakai LootBox untuk top
               up harian, voucher resmi, hingga akun mythic. Cepat, aman, dan
               transparan dari awal sampai akhir transaksi.
             </p>

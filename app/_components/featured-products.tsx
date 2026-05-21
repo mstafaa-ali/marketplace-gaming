@@ -35,7 +35,7 @@ export async function FeaturedProducts() {
           </h2>
           <p className="max-w-xl text-sm text-fg-muted">
             Akun, top up, dan voucher dengan harga terbaik minggu ini. Stok
-            dikurasi langsung tim GameVault dan dijaga 100% anti-minus.
+            dikurasi langsung tim LootBox dan dijaga 100% anti-minus.
           </p>
         </div>
 

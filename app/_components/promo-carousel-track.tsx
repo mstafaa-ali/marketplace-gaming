@@ -90,7 +90,7 @@ export function PromoCarouselTrack({
       className="relative"
     >
       <span id={labelId} className="sr-only">
-        Promo dan penawaran spesial GameVault
+        Promo dan penawaran spesial LootBox
       </span>
 
       <div className="relative">
