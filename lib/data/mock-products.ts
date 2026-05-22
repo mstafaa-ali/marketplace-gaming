@@ -1,5 +1,5 @@
 import "server-only";
-import type { Product } from "@/lib/types/product";
+import type { MediaItem, Product } from "@/lib/types/product";
 
 const placeholder = (
   title: string,
@@ -461,6 +461,34 @@ const TOPUP_SPECS: TopupSpec[] = [
  */
 const TOPUP_EPOCH_BASE = new Date("2026-05-01T00:00:00.000Z").getTime();
 
+/**
+ * Map gameSlug → asset currency resmi yang dipakai sebagai `coverImage`/`media`
+ * tiap `Topup_Denomination`. Hanya diisi untuk game yang punya aset tersedia
+ * di `public/image/topup-currency/`. Game lain tetap pakai `placeholder()`.
+ *
+ * URL di-encode (`%20`, dll.) seandainya filename mengandung spasi.
+ */
+const TOPUP_CURRENCY_IMAGES: Record<string, MediaItem> = {
+  "mobile-legends": {
+    url: "/image/topup-currency/mobile-legend-diamond-logo.jfif",
+    alt: "Mobile Legends Diamond",
+    width: 800,
+    height: 600,
+  },
+  valorant: {
+    url: "/image/topup-currency/valorant-point-logo.jpg",
+    alt: "Valorant Point (VP)",
+    width: 800,
+    height: 600,
+  },
+  "genshin-impact": {
+    url: "/image/topup-currency/genesis-crystal-logo.jpg",
+    alt: "Genshin Impact Genesis Crystal",
+    width: 800,
+    height: 600,
+  },
+};
+
 function generateTopupProducts(): Product[] {
   return TOPUP_SPECS.flatMap((spec, gameIdx) =>
     spec.tiers.map((tier, tierIdx): Product => {
@@ -475,6 +503,20 @@ function generateTopupProducts(): Product[] {
         TOPUP_EPOCH_BASE + (gameIdx * 60 + tierIdx) * 60_000,
       ).toISOString();
 
+      const currencyAsset = TOPUP_CURRENCY_IMAGES[spec.gameSlug];
+      const coverImage: MediaItem = currencyAsset
+        ? {
+            ...currencyAsset,
+            alt: `${spec.gameName} ${nominalLabel} ${spec.unit}`,
+          }
+        : placeholder(`${spec.gameName} ${nominalLabel} ${spec.unit}`);
+      const galleryImage: MediaItem = currencyAsset
+        ? {
+            ...currencyAsset,
+            alt: `${spec.gameName} ${spec.unit}`,
+          }
+        : placeholder(`${spec.gameName} ${spec.unit}`);
+
       return {
         id: `t-${spec.gameSlug}-${tier.idSuffix}`,
         slug: `topup-${spec.gameSlug}-${tier.idSuffix}-${spec.unit
@@ -486,10 +528,8 @@ function generateTopupProducts(): Product[] {
         category: "topup",
         gameSlug: spec.gameSlug,
         gameName: spec.gameName,
-        coverImage: placeholder(
-          `${spec.gameName} ${nominalLabel} ${spec.unit}`,
-        ),
-        media: [placeholder(`${spec.gameName} ${spec.unit}`)],
+        coverImage,
+        media: [galleryImage],
         price: {
           currency: "IDR",
           amount: tier.price,
@@ -524,15 +564,30 @@ const ACCOUNT_PRODUCTS: Product[] = [
     gameSlug: "mobile-legends",
     gameName: "Mobile Legends",
     coverImage: {
-      url: "/image/akun-ml-1.jpg",
-      alt: "Akun ML Mythic",
+      url: "/image/akun/mobile%20legend/akun-ml-1.jpg",
+      alt: "Akun ML Mythic Glory · cover",
       width: 800,
       height: 600,
     },
     media: [
-      placeholder("ML Mythic 1"),
-      placeholder("ML Mythic 2"),
-      placeholder("ML Mythic 3"),
+      {
+        url: "/image/akun/mobile%20legend/akun-ml-1.jpg",
+        alt: "Akun ML Mythic Glory · profil rank",
+        width: 800,
+        height: 600,
+      },
+      {
+        url: "/image/akun/mobile%20legend/akun-mobile-legend-2.jpg",
+        alt: "Akun ML Mythic Glory · koleksi skin",
+        width: 800,
+        height: 600,
+      },
+      {
+        url: "/image/akun/mobile%20legend/akun-mobile-legend-3.jpeg",
+        alt: "Akun ML Mythic Glory · daftar hero",
+        width: 800,
+        height: 600,
+      },
     ],
     price: {
       currency: "IDR",
@@ -570,12 +625,31 @@ const ACCOUNT_PRODUCTS: Product[] = [
     gameSlug: "valorant",
     gameName: "Valorant",
     coverImage: {
-      url: "/image/akun-valo-1.jpg",
-      alt: "Akun Valorant Immortal",
+      url: "/image/akun/valorant/akun-valo-1.jpg",
+      alt: "Akun Valorant Immortal · cover",
       width: 800,
       height: 600,
     },
-    media: [placeholder("Valo 1"), placeholder("Valo 2")],
+    media: [
+      {
+        url: "/image/akun/valorant/akun-valo-1.jpg",
+        alt: "Akun Valorant Immortal · profil rank",
+        width: 800,
+        height: 600,
+      },
+      {
+        url: "/image/akun/valorant/akun-valo-2.jpg",
+        alt: "Akun Valorant Immortal · koleksi bundle",
+        width: 800,
+        height: 600,
+      },
+      {
+        url: "/image/akun/valorant/akun-valo-3.jpg",
+        alt: "Akun Valorant Immortal · daftar agent",
+        width: 800,
+        height: 600,
+      },
+    ],
     price: {
       currency: "IDR",
       amount: 3_750_000,
@@ -607,12 +681,31 @@ const ACCOUNT_PRODUCTS: Product[] = [
     gameSlug: "pubg-mobile",
     gameName: "PUBG Mobile",
     coverImage: {
-      url: "/image/akun-pubg-1.jpg",
-      alt: "Akun PUBG Sultan",
+      url: "/image/akun/pubg/akun-pubg-1.jpg",
+      alt: "Akun PUBG Conqueror · cover",
       width: 800,
       height: 600,
     },
-    media: [placeholder("PUBG 1")],
+    media: [
+      {
+        url: "/image/akun/pubg/akun-pubg-1.jpg",
+        alt: "Akun PUBG Conqueror · profil rank",
+        width: 800,
+        height: 600,
+      },
+      {
+        url: "/image/akun/pubg/akun-pubg-2.jpg",
+        alt: "Akun PUBG Conqueror · koleksi skin senjata",
+        width: 800,
+        height: 600,
+      },
+      {
+        url: "/image/akun/pubg/akun-pubg-3.jpg",
+        alt: "Akun PUBG Conqueror · stats akun",
+        width: 800,
+        height: 600,
+      },
+    ],
     price: {
       currency: "IDR",
       amount: 1_899_000,
@@ -643,12 +736,31 @@ const ACCOUNT_PRODUCTS: Product[] = [
     gameSlug: "genshin-impact",
     gameName: "Genshin Impact",
     coverImage: {
-      url: "/image/akun-genshin-1.jpg",
-      alt: "Akun Genshin AR60",
+      url: "/image/akun/genshin/akun-genshin-1.jpg",
+      alt: "Akun Genshin AR60 · cover",
       width: 800,
       height: 600,
     },
-    media: [placeholder("Genshin 1")],
+    media: [
+      {
+        url: "/image/akun/genshin/akun-genshin-1.jpg",
+        alt: "Akun Genshin AR60 · profil Adventure Rank",
+        width: 800,
+        height: 600,
+      },
+      {
+        url: "/image/akun/genshin/akun-genshin-2.jfif",
+        alt: "Akun Genshin AR60 · koleksi karakter Archon",
+        width: 800,
+        height: 600,
+      },
+      {
+        url: "/image/akun/genshin/akun-genshin-3.jpg",
+        alt: "Akun Genshin AR60 · inventory & senjata",
+        width: 800,
+        height: 600,
+      },
+    ],
     price: { currency: "IDR", amount: 5_250_000 },
     stockStatus: "ready",
     highlights: ["AR 60", "All Archon C0+", "Endgame Ready"],
