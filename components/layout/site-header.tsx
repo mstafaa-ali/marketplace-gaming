@@ -31,7 +31,7 @@ export function SiteHeader() {
             alt="LootBox logo"
             width={44}
             height={44}
-            className="size-20 object-contain sm:hidden"
+            className="size-11 object-contain sm:hidden"
             priority
           />
           {/* Logo full untuk desktop */}
